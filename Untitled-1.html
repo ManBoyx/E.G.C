@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mini Web Browser</title>
+</head>
+<body>
+    <input type="text" id="url" placeholder="Enter URL" style="width: 80%;" />
+    <button onclick="loadPage()">Go</button>
+    <iframe id="browser" src="" style="width: 100%; height: 90vh;"></iframe>
+
+    <script>
+        function loadPage() {
+            var url = document.getElementById("url").value;
+            if (url.indexOf("http://") !== 0 && url.indexOf("https://") !== 0) {
+                url = "http://" + url;
+            }
+            document.getElementById("browser").src = url;
+        }
+    </script>
+</body>
+</html>
