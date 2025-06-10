@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorateur de Métiers : Hôtellerie-Restauration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- 
+    Chosen Palette: Warm Neutrals and Teal 
+    Application Structure Plan: The application is structured as a single-page interactive explorer rather than a linear slideshow. It uses a main introduction, a tab-based navigation for the three job roles (Maître d'Hôtel, Cuisinier, Serveur), and a final summary section with an interactive comparison chart. This structure was chosen to empower the user with control over their exploration path, allowing for easy, non-linear access to information and direct comparison, which enhances understanding and engagement far better than a static, sequential presentation.
+    Visualization & Content Choices:
+    - Report Info: Individual job descriptions (missions, qualities, evolution). -> Goal: Inform & Explore. -> Presentation Method: Tabbed content panels with styled cards and icons. -> Interaction: User clicks on a tab to display the relevant job information. -> Justification: This is a standard, intuitive UI pattern that organizes a large amount of information cleanly without overwhelming the user.
+    - Report Info: Lists of required qualities for each job. -> Goal: Compare & Synthesize. -> Viz/Presentation Method: An interactive radar chart (using Chart.js on a Canvas element). -> Interaction: Hovering over points on the chart reveals tooltips with specific data. -> Justification: The radar chart provides an immediate, powerful visual summary of how the jobs compare on key attributes. It transforms lists of text into an insightful data visualization, making the similarities and differences instantly clear.
+    CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdfaf6;
+            color: #4a4a4a;
+        }
+        .tab-active {
+            border-color: #0d9488;
+            color: #0f766e;
+            background-color: #ccfbf1;
+        }
+        .tab-inactive {
+            border-color: transparent;
+            color: #52525b;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-5xl">
+
+        <header class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-teal-800 mb-2">Mon Parcours Avenir</h1>
+            <p class="text-lg text-zinc-600">Découverte des métiers de l'hôtellerie-restauration</p>
+        </header>
+
+        <main>
+            <section id="intro" class="bg-white p-6 rounded-xl shadow-md mb-10">
+                <p class="text-center text-zinc-700">Bienvenue ! Cette page interactive présente trois métiers passionnants du monde de la restauration, un secteur dynamique et riche en opportunités. Explorez chaque rôle pour découvrir ses missions, les qualités requises et les possibilités d'évolution de carrière.</p>
+            </section>
+
+            <section id="explorer">
+                <div class="mb-8">
+                    <nav class="flex justify-center border-b border-zinc-200" aria-label="Tabs">
+                        <button id="tab-maitre" class="tab-button text-sm md:text-base font-semibold py-4 px-3 md:px-6 border-b-2 transition-colors duration-300 ease-in-out">Maître d'Hôtel</button>
+                        <button id="tab-cuisinier" class="tab-button text-sm md:text-base font-semibold py-4 px-3 md:px-6 border-b-2 transition-colors duration-300 ease-in-out">Cuisinier</button>
+                        <button id="tab-serveur" class="tab-button text-sm md:text-base font-semibold py-4 px-3 md:px-6 border-b-2 transition-colors duration-300 ease-in-out">Serveur</button>
+                    </nav>
+                </div>
+
+                <div id="content-panels">
+                    <div id="panel-maitre" class="content-panel">
+                        <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg transition-opacity duration-500 ease-in-out">
+                            <h2 class="text-2xl font-bold text-teal-700 mb-4">Le Maître d'Hôtel</h2>
+                            <p class="mb-6 text-zinc-600">Le chef d'orchestre de la salle, il veille à ce que l'expérience de chaque client soit inoubliable, de l'accueil jusqu'au départ.</p>
+                            <div class="grid md:grid-cols-3 gap-6">
+                                <div class="bg-teal-50 p-4 rounded-lg">
+                                    <h3 class="font-bold text-lg mb-2 text-teal-800 flex items-center">🎯 Missions</h3>
+                                    <ul class="list-disc list-inside text-zinc-700 space-y-1">
+                                        <li>Accueillir et placer les clients</li>
+                                        <li>Prendre les commandes</li>
+                                        <li>Superviser le service en salle</li>
+                                        <li>Gérer les réservations et le plan de salle</li>
+                                        <li>Former et manager les équipes</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-teal-50 p-4 rounded-lg">
+                                    <h3 class="font-bold text-lg mb-2 text-teal-800 flex items-center">⭐ Qualités</h3>
+                                    <ul class="list-disc list-inside text-zinc-700 space-y-1">
+                                        <li>Excellent relationnel</li>
+                                        <li>Organisation et rigueur</li>
+                                        <li>Diplomatie et calme</li>
+                                        <li>Présentation irréprochable</li>
+                                        <li>Leadership</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-teal-50 p-4 rounded-lg">
+                                    <h3 class="font-bold text-lg mb-2 text-teal-800 flex items-center">🚀 Évolution</h3>
+                                    <ul class="list-disc list-inside text-zinc-700 space-y-1">
+                                        <li>Directeur de restaurant</li>
+                                        <li>Responsable de la restauration</li>
+                                        <li>Ouvrir son propre établissement</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="panel-cuisinier" class="content-panel hidden">
+                        <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg transition-opacity duration-500 ease-in-out">
+                            <h2 class="text-2xl font-bold text-teal-700 mb-4">Le Cuisinier</h2>
+                            <p class="mb-6 text-zinc-600">L'artiste des saveurs qui transforme les produits bruts en plats délicieux et créatifs, au cœur de l'effervescence de la cuisine.</p>
+                            <div class="grid md:grid-cols-3 gap-6">
+                                <div class="bg-teal-50 p-4 rounded-lg">
+                                    <h3 class="font-bold text-lg mb-2 text-teal-800 flex items-center">🎯 Missions</h3>
+                                    <ul class="list-disc list-inside text-zinc-700 space-y-1">
+                                        <li>Préparer les ingrédients</li>
+                                        <li>Réaliser les cuissons et les plats</li>
+                                        <li>Dresser les assiettes</li>
+                                        <li>Gérer les stocks de marchandises</li>
+                                        <li>Respecter les normes d'hygiène</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-teal-50 p-4 rounded-lg">
+                                    <h3 class="font-bold text-lg mb-2 text-teal-800 flex items-center">⭐ Qualités</h3>
+                                    <ul class="list-disc list-inside text-zinc-700 space-y-1">
+                                        <li>Créativité et curiosité</li>
+                                        <li>Rigueur et précision</li>
+                                        <li>Résistance au stress et physique</li>
+                                        <li>Esprit d'équipe</li>
+                                        <li>Rapidité d'exécution</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-teal-50 p-4 rounded-lg">
+                                    <h3 class="font-bold text-lg mb-2 text-teal-800 flex items-center">🚀 Évolution</h3>
+                                    <ul class="list-disc list-inside text-zinc-700 space-y-1">
+                                        <li>Chef de partie</li>
+                                        <li>Second de cuisine (Sous-chef)</li>
+                                        <li>Chef de cuisine</li>
+                                        <li>Ouvrir son restaurant</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="panel-serveur" class="content-panel hidden">
+                        <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg transition-opacity duration-500 ease-in-out">
+                            <h2 class="text-2xl font-bold text-teal-700 mb-4">Le Serveur</h2>
+                            <p class="mb-6 text-zinc-600">Le lien essentiel entre la cuisine et le client. Il assure un service fluide et agréable, et incarne l'ambiance du restaurant.</p>
+                            <div class="grid md:grid-cols-3 gap-6">
+                                <div class="bg-teal-50 p-4 rounded-lg">
+                                    <h3 class="font-bold text-lg mb-2 text-teal-800 flex items-center">🎯 Missions</h3>
+                                    <ul class="list-disc list-inside text-zinc-700 space-y-1">
+                                        <li>Mettre en place la salle</li>
+                                        <li>Prendre les commandes</li>
+                                        <li>Servir les plats et boissons</li>
+                                        <li>Débarrasser et nettoyer</li>
+                                        <li>Conseiller les clients</li>
+                                    </ul>
+                                </div>
+                               <div class="bg-teal-50 p-4 rounded-lg">
+                                    <h3 class="font-bold text-lg mb-2 text-teal-800 flex items-center">⭐ Qualités</h3>
+                                    <ul class="list-disc list-inside text-zinc-700 space-y-1">
+                                        <li>Sens du service et amabilité</li>
+                                        <li>Dynamisme et rapidité</li>
+                                        <li>Bonne mémoire</li>
+                                        <li>Discrétion et professionnalisme</li>
+                                        <li>Bonne présentation</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-teal-50 p-4 rounded-lg">
+                                    <h3 class="font-bold text-lg mb-2 text-teal-800 flex items-center">🚀 Évolution</h3>
+                                    <ul class="list-disc list-inside text-zinc-700 space-y-1">
+                                        <li>Chef de rang</li>
+                                        <li>Maître d'hôtel</li>
+                                        <li>Directeur de restaurant</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="comparison" class="mt-12 md:mt-20">
+                 <div class="text-center mb-10">
+                    <h2 class="text-2xl md:text-3xl font-bold text-teal-800 mb-2">Comparaison des Métiers</h2>
+                    <p class="text-zinc-600">Ce graphique interactif compare les qualités clés pour chaque rôle. Survolez les points pour en savoir plus !</p>
+                </div>
+                <div class="bg-white p-4 sm:p-6 md:p-8 rounded-xl shadow-lg">
+                    <div class="chart-container">
+                        <canvas id="qualitiesChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="text-center mt-12 text-zinc-500 text-sm">
+            <p>&copy; 2024 Mon Parcours Avenir. Un projet pour explorer les opportunités de carrière.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabs = {
+                maitre: document.getElementById('tab-maitre'),
+                cuisinier: document.getElementById('tab-cuisinier'),
+                serveur: document.getElementById('tab-serveur'),
+            };
+
+            const panels = {
+                maitre: document.getElementById('panel-maitre'),
+                cuisinier: document.getElementById('panel-cuisinier'),
+                serveur: document.getElementById('panel-serveur'),
+            };
+
+            const allTabs = Object.values(tabs);
+            const allPanels = Object.values(panels);
+
+            function activateTab(tabName) {
+                allTabs.forEach(tab => {
+                    tab.classList.remove('tab-active');
+                    tab.classList.add('tab-inactive');
+                });
+                tabs[tabName].classList.add('tab-active');
+                tabs[tabName].classList.remove('tab-inactive');
+                
+                allPanels.forEach(panel => {
+                    panel.classList.add('hidden');
+                });
+                panels[tabName].classList.remove('hidden');
+            }
+
+            tabs.maitre.addEventListener('click', () => activateTab('maitre'));
+            tabs.cuisinier.addEventListener('click', () => activateTab('cuisinier'));
+            tabs.serveur.addEventListener('click', () => activateTab('serveur'));
+
+            activateTab('maitre');
+
+            const ctx = document.getElementById('qualitiesChart').getContext('2d');
+            const qualitiesChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Contact Humain', 'Travail d\'Équipe', 'Créativité', 'Organisation', 'Résistance au Stress'],
+                    datasets: [{
+                        label: 'Maître d\'Hôtel',
+                        data: [5, 4, 2, 5, 4],
+                        fill: true,
+                        backgroundColor: 'rgba(13, 148, 136, 0.2)',
+                        borderColor: 'rgb(13, 148, 136)',
+                        pointBackgroundColor: 'rgb(13, 148, 136)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(13, 148, 136)'
+                    }, {
+                        label: 'Cuisinier',
+                        data: [2, 5, 5, 4, 5],
+                        fill: true,
+                        backgroundColor: 'rgba(249, 115, 22, 0.2)',
+                        borderColor: 'rgb(249, 115, 22)',
+                        pointBackgroundColor: 'rgb(249, 115, 22)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(249, 115, 22)'
+                    },
+                    {
+                        label: 'Serveur',
+                        data: [5, 4, 1, 3, 3],
+                        fill: true,
+                        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                        borderColor: 'rgb(99, 102, 241)',
+                        pointBackgroundColor: 'rgb(99, 102, 241)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(99, 102, 241)'
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    elements: {
+                        line: {
+                            borderWidth: 3
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: false
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 5,
+                            pointLabels: {
+                                font: {
+                                    size: 12,
+                                }
+                            },
+                             ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.r !== null) {
+                                        label += context.parsed.r + ' / 5';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
