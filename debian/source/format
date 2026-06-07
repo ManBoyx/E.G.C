@@ -1,0 +1,12 @@
+Format: 1.0
+Source: egc
+Binary: egc-antivirus, egc-photo-editor, egc-browser, egc-audio-amplifier
+Architecture: all
+Version: 1.0.0-1
+Maintainer: ManBoyx <manboyxv4@gmail.com>
+Homepage: https://github.com/ManBoyx/E.G.C
+Standards-Version: 4.5.0
+Build-Depends: debhelper-compat (= 13), python3
+Vcs-Git: https://github.com/ManBoyx/E.G.C.git
+Vcs-Browser: https://github.com/ManBoyx/E.G.C
+Upload-Changelog: no

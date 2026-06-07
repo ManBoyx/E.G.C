@@ -1,0 +1,11 @@
+EGC Suite v1.0.0
+
+Changelog:
+
+-- ManBoyx <manboyxv4@gmail.com>  Sat, 07 Jun 2025 22:00:00 +0000
+
+* Version initiale optimisée pour Linux
+* Scanner antivirus avec interface PyQt5
+* Éditeur photo léger
+* Navigateur web avec support des onglets
+* Amplificateur audio

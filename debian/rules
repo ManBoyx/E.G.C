@@ -1,0 +1,72 @@
+#!/bin/bash
+set -e
+
+# Script de construction du paquet Debian
+# Création de la structure des répertoires
+mkdir -p debian/tmp/usr/bin
+mkdir -p debian/tmp/usr/lib/egc
+mkdir -p debian/tmp/usr/share/applications
+mkdir -p debian/tmp/usr/share/icons/hicolor/256x256/apps
+
+# Copie des exécutables
+cp egc-antivirus debian/tmp/usr/bin/
+cp egc-photo-editor debian/tmp/usr/bin/
+cp egc-browser debian/tmp/usr/bin/
+cp egc-audio-amplifier debian/tmp/usr/bin/
+
+# Rendre les exécutables exécutables
+chmod +x debian/tmp/usr/bin/egc-*
+
+# Copie des fichiers source Python
+cp -r src debian/tmp/usr/lib/egc/
+
+# Création des fichiers .desktop
+cat > debian/tmp/usr/share/applications/egc-antivirus.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=EGC Antivirus
+Comment=Scanner antivirus optimisé
+Exec=egc-antivirus
+Icon=egc-antivirus
+Terminal=false
+Categories=Utility;Security;
+EOF
+
+cat > debian/tmp/usr/share/applications/egc-photo-editor.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=EGC Photo Editor
+Comment=Éditeur photo optimisé
+Exec=egc-photo-editor
+Icon=egc-photo-editor
+Terminal=false
+Categories=Graphics;
+EOF
+
+cat > debian/tmp/usr/share/applications/egc-browser.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=EGC Browser
+Comment=Navigateur web optimisé
+Exec=egc-browser
+Icon=egc-browser
+Terminal=false
+Categories=Internet;WebBrowser;
+EOF
+
+cat > debian/tmp/usr/share/applications/egc-audio-amplifier.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=EGC Audio Amplifier
+Comment=Amplificateur audio optimisé
+Exec=egc-audio-amplifier
+Icon=egc-audio-amplifier
+Terminal=false
+Categories=Multimedia;Audio;
+EOF
+
+echo "Structure Debian créée avec succès!"

@@ -1,0 +1,35 @@
+Source: egc
+Section: utils
+Priority: optional
+Maintainer: ManBoyx <manboyxv4@gmail.com>
+Homepage: https://github.com/ManBoyx/E.G.C
+Vcs-Git: https://github.com/ManBoyx/E.G.C.git
+Vcs-Browser: https://github.com/ManBoyx/E.G.C
+
+Package: egc-antivirus
+Version: 1.0.0
+Architecture: all
+Depends: python3, python3-pyqt5, python3-pyqt5.qtwebengine, python3-pip
+Description: Scanner antivirus optimisé pour Linux
+ Antivirus efficace avec interface PyQt5
+
+Package: egc-photo-editor
+Version: 1.0.0
+Architecture: all
+Depends: python3, python3-tk, python3-pil
+Description: Éditeur photo optimisé pour Linux
+ Éditeur image léger et rapide
+
+Package: egc-browser
+Version: 1.0.0
+Architecture: all
+Depends: python3, python3-pyqt5, python3-pyqt5.qtwebengine
+Description: Navigateur web optimisé pour Linux
+ Navigateur web léger avec support des onglets
+
+Package: egc-audio-amplifier
+Version: 1.0.0
+Architecture: all
+Depends: python3, python3-pyqt5, python3-numpy, python3-sounddevice
+Description: Amplificateur audio optimisé pour Linux
+ Amplificateur audio avec interface PyQt5

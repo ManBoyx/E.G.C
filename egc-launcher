@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Script principal pour lancer les applications"""
+import sys
+import subprocess
+from pathlib import Path
+
+def main():
+    """Affiche le menu principal"""
+    print("""
+    ╔════════════════════════════════════════╗
+    ║        EGC Suite v1.0.0                ║
+    ║   Applications optimisées pour Linux   ║
+    ╚════════════════════════════════════════╝
+    
+    Sélectionnez une application:
+    
+    1) 🔒  Antivirus Scanner
+    2) 🖼️  Photo Editor
+    3) 🌐  Web Browser
+    4) 🔊  Audio Amplifier
+    5) ❌  Quitter
+    """)
+    
+    choice = input("Votre choix (1-5): ").strip()
+    
+    apps = {
+        '1': 'egc-antivirus',
+        '2': 'egc-photo-editor',
+        '3': 'egc-browser',
+        '4': 'egc-audio-amplifier',
+    }
+    
+    if choice in apps:
+        try:
+            subprocess.run([apps[choice]], check=True)
+        except Exception as e:
+            print(f"Erreur: {e}")
+            sys.exit(1)
+    elif choice == '5':
+        print("Au revoir!")
+        sys.exit(0)
+    else:
+        print("Choix invalide!")
+        main()
+
+if __name__ == "__main__":
+    main()
