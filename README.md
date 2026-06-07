@@ -1,7 +1,7 @@
 # 📦 EGC Suite - Applications Optimisées pour Linux
 
 **Version:** 1.0.0  
-**Auteur:** ManBoyx  
+**Auteur:** ManBoyxv4  
 **License:** MIT  
 **Plateforme:** Linux (Debian/Ubuntu et dérivés)
 
