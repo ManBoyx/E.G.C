@@ -1,270 +1,173 @@
-# EGC Suite - Applications Optimisées pour Linux
+# EGC Suite
 
-**Version:** 1.0.0  
-**Auteur:** ManBoyxv4  
-**License:** MIT  
-**Plateforme:** Linux (Debian/Ubuntu et dérivés)
+Suite d'applications desktop multi-plateforme en Python.  
+4 applications : Antivirus, Editeur Photo, Navigateur Web, Amplificateur Audio.
 
 ---
 
-## Contenu du Projet
+## Applications
 
-EGC Suite contient 4 applications optimisées pour Linux:
+### Antivirus Scanner
+Scanner de fichiers par signatures avec interface graphique.
+- Scan rapide/complet avec barre de progression
+- Mise en quarantaine automatique des fichiers suspects
+- Gestion de la quarantaine (restaurer/supprimer)
+- Historique complet des scans
 
-### 1. EGC Antivirus (`egc-antivirus`)
-Scanner antivirus performant avec interface PyQt5
-- Scan rapide et complet avec streaming I/O
-- Quarantaine automatique des fichiers infectés
-- Onglet de gestion de quarantaine
-- Historique des scans
-- Progress bar en temps réel
-- Bouton d'arrêt du scan
+### Photo Editor
+Editeur d'images avec outils de dessin et filtres.
+- Outils : crayon, gomme, ligne
+- Filtres : noir & blanc, flou, nettete, contour, relief
+- Reglages : luminosite, contraste
+- Undo/redo (30 niveaux), raccourcis clavier
 
-### 2. EGC Photo Editor (`egc-photo-editor`)
-Éditeur photo complet avec filtres et outils
-- Outils de dessin (crayon, gomme, ligne)
-- Filtres d'image (N&B, flou, netteté, contour, relief)
-- Ajustement luminosité et contraste
-- Annuler/Refaire (30 niveaux)
-- Réinitialisation à l'image originale
-- Raccourcis clavier (Ctrl+O, Ctrl+S, Ctrl+Z, Ctrl+Y)
-- Barre de statut avec infos image
+### Web Browser
+Navigateur web avec onglets (moteur Chromium via QtWebEngine).
+- Barre de navigation : retour, avancer, recharger, accueil
+- Barre d'adresse intelligente (URL directe ou recherche Brave)
+- Gestion des onglets (Ctrl+T / Ctrl+W)
+- Mode plein ecran (F11)
 
-### 3. EGC Browser (`egc-browser`)
-Navigateur web avec onglets et barre d'outils
-- Gestion des onglets (Ctrl+T, Ctrl+W)
-- Barre de navigation (retour, avancer, recharger, accueil)
-- Barre d'adresse intelligente (URL ou recherche Brave)
-- Menu Fichier/Affichage/Aide
-- Mode plein écran (F11)
-- Mise à jour dynamique des titres d'onglets
-
-### 4. EGC Audio Amplifier (`egc-audio-amplifier`)
-Amplificateur audio avec interface graphique
-- Contrôle du volume 1-10x avec descriptions
-- Indicateur de niveau coloré
-- Traitement du signal en temps réel
-- Écrêtage automatique
-- Gestion propre des erreurs audio
-
----
-
-## Prérequis Système
-
-```bash
-# Debian/Ubuntu
-sudo apt update
-sudo apt install python3 python3-pip python3-pyqt5 python3-pyqt5.qtwebengine python3-pil python3-numpy
-```
+### Audio Amplifier
+Amplificateur audio temps reel avec controle du gain.
+- Amplification de 1x a 10x
+- Indicateur de niveau avec code couleur
+- Ecretage automatique pour eviter la distorsion
 
 ---
 
 ## Installation
 
-### Option 1: Installation depuis les sources
+### Linux (Debian/Ubuntu)
 
 ```bash
-# Cloner le repo
+# Dependances systeme
+sudo apt install python3 python3-pip python3-pyqt5 \
+    python3-pyqt5.qtwebengine python3-pil python3-numpy
+
+# Cloner et installer
 git clone https://github.com/ManBoyx/E.G.C.git
 cd E.G.C
-
-# Installer les dépendances
 pip3 install -r requirements.txt
 
-# Lancer les applications
-./egc-antivirus
-./egc-photo-editor
-./egc-browser
-./egc-audio-amplifier
-
-# Ou via le lanceur
-./egc-launcher
+# Lancer
+./egc-launcher          # menu interactif
+./egc-antivirus         # antivirus seul
+./egc-photo-editor      # editeur photo seul
+./egc-browser           # navigateur seul
+./egc-audio-amplifier   # amplificateur seul
 ```
 
-### Option 2: Installation du paquet Debian (.deb)
+### Windows
+
+```cmd
+cd windows
+install.bat
+
+:: Ou manuellement
+pip install PyQt5 PyQtWebEngine Pillow numpy sounddevice
+
+:: Lancer
+python launcher.py
+python antivirus_scanner.py
+python photo_editor.py
+python web_browser.py
+python audio_amplifier.py
+```
+
+### Paquet Debian (.deb)
 
 ```bash
-# Construire le paquet
-cd debian
-bash rules
-cd ..
-
-# Installer le paquet
-sudo dpkg -i egc-suite_1.0.0_all.deb
-
-# Ou via apt
+cd debian && bash rules && cd ..
 sudo apt install ./egc-suite_1.0.0_all.deb
 ```
 
-Après installation, les applications seront disponibles dans le menu des applications ou via:
-
-```bash
-egc-antivirus
-egc-photo-editor
-egc-browser
-egc-audio-amplifier
-```
-
 ---
 
-## Structure du Projet
+## Structure du projet
 
 ```
 E.G.C/
-├── src/                          # Code source principal
-│   ├── __init__.py
-│   ├── antivirus/               # Scanner antivirus
-│   │   ├── __init__.py
-│   │   └── scanner.py
-│   ├── photo/                   # Éditeur photo
-│   │   ├── __init__.py
-│   │   └── editor.py
-│   ├── browser/                 # Navigateur web
-│   │   ├── __init__.py
-│   │   └── navigator.py
-│   └── audio/                   # Amplificateur audio
-│       ├── __init__.py
-│       └── amplifier.py
-├── archive/                     # Anciens prototypes (référence)
-├── debian/                      # Configuration paquet Debian
-│   ├── control
-│   ├── changelog
-│   ├── rules
-│   └── source/
-├── egc-antivirus               # Exécutable antivirus
-├── egc-photo-editor            # Exécutable éditeur
-├── egc-browser                 # Exécutable navigateur
-├── egc-audio-amplifier         # Exécutable amplificateur
-├── egc-launcher                # Lanceur (menu)
-├── setup.py                    # Configuration Python
-├── requirements.txt            # Dépendances
-├── virus_database.txt          # Base de signatures
-└── README.md                   # Ce fichier
+├── src/                        # Applications Linux
+│   ├── antivirus/scanner.py
+│   ├── photo/editor.py
+│   ├── browser/navigator.py
+│   └── audio/amplifier.py
+├── windows/                    # Applications Windows (theme sombre)
+│   ├── antivirus_scanner.py
+│   ├── photo_editor.py
+│   ├── web_browser.py
+│   ├── audio_amplifier.py
+│   ├── launcher.py
+│   └── install.bat
+├── debian/                     # Packaging Debian
+├── egc-antivirus               # Lanceurs Linux
+├── egc-photo-editor
+├── egc-browser
+├── egc-audio-amplifier
+├── egc-launcher
+├── orale.html                  # Page web Parcours Avenir
+├── setup.py
+├── requirements.txt
+└── virus_database.txt
 ```
 
 ---
 
-## Optimisations Appliquées
+## Technologies
 
-### Performance
-- Streaming I/O pour les gros fichiers (chunks de 8192 bytes)
-- Gestion mémoire optimisée (limite undo stack)
-- Threads non-bloquants pour le scan antivirus
-- Redimensionnement intelligent des images
-
-### Code Quality
-- Type hints complets
-- Gestion d'erreurs robuste avec messages utilisateur
-- Logging détaillé
-- Fonctions `main()` dans chaque module pour entry_points
-- Code DRY (Don't Repeat Yourself)
-
-### UX
-- Raccourcis clavier dans toutes les apps
-- Barres de statut informatives
-- Styles CSS pour les boutons PyQt5
-- Barre de navigation complète dans le navigateur
-- Filtres d'image dans l'éditeur photo
-
-### Linux Integration
-- Respect des standards FHS
-- Fichiers .desktop pour le menu
-- Entrées console_scripts
-- Support des dépendances système
+| Composant | Technologie |
+|---|---|
+| GUI (Antivirus, Browser, Audio) | PyQt5 |
+| GUI (Photo Editor) | Tkinter + Pillow |
+| Moteur web | QtWebEngine (Chromium) |
+| Traitement audio | NumPy + Sounddevice |
+| Traitement image | Pillow (PIL) |
+| Packaging | setuptools + dpkg |
 
 ---
 
-## Utilisation
+## Differences Linux / Windows
 
-### Antivirus
-
-```bash
-egc-antivirus
-# 1. Sélectionner le type de scan (rapide/complet/personnalisé)
-# 2. Cliquer sur "Démarrer le scan"
-# 3. Sélectionner le dossier à scanner
-# 4. Les fichiers infectés sont automatiquement mis en quarantaine
-# 5. Consulter l'historique et gérer la quarantaine dans les onglets
-```
-
-### Éditeur Photo
-
-```bash
-egc-photo-editor
-# 1. Ouvrir une image (Ctrl+O) ou créer un nouveau canvas (Ctrl+N)
-# 2. Dessiner avec les outils (crayon, gomme, ligne)
-# 3. Appliquer des filtres via le menu Filtres
-# 4. Ajuster luminosité/contraste
-# 5. Sauvegarder le résultat (Ctrl+S)
-```
-
-### Navigateur Web
-
-```bash
-egc-browser
-# 1. Entrer une URL ou une recherche dans la barre d'adresse
-# 2. Utiliser les boutons de navigation (retour, avancer, recharger, accueil)
-# 3. Ouvrir de nouveaux onglets (Ctrl+T)
-# 4. Mode plein écran avec F11
-```
-
-### Amplificateur Audio
-
-```bash
-egc-audio-amplifier
-# 1. Ajuster le curseur de volume (1x-10x)
-# 2. Cliquer "Démarrer"
-# 3. Le son du micro est amplifié en temps réel
-# 4. Cliquer "Arrêter" pour couper
-```
+| | Linux (`src/`) | Windows (`windows/`) |
+|---|---|---|
+| Theme | Clair (natif) | Sombre (Catppuccin Mocha) |
+| Police | System default | Segoe UI |
+| Installation | apt + pip | install.bat ou pip |
+| Lanceurs | Scripts shell `egc-*` | `launcher.py` |
 
 ---
 
-## Troubleshooting
+## Raccourcis clavier
 
-### PyQt5 ne se lance pas
+| Raccourci | Action |
+|---|---|
+| `Ctrl+T` | Nouvel onglet (navigateur) |
+| `Ctrl+W` | Fermer onglet (navigateur) |
+| `Ctrl+O` | Ouvrir image (editeur) |
+| `Ctrl+S` | Sauvegarder (editeur) |
+| `Ctrl+Z` | Annuler (editeur) |
+| `Ctrl+Y` | Refaire (editeur) |
+| `Ctrl+N` | Nouveau canvas (editeur) |
+| `F11` | Plein ecran (navigateur) |
+| `Ctrl+Q` | Quitter (navigateur) |
 
-```bash
-sudo apt install python3-pyqt5 python3-pyqt5.qtwebengine
-```
+---
 
-### Erreur "sounddevice not found"
+## Prerequis
 
-```bash
-pip3 install sounddevice
-```
-
-### Permission denied sur les exécutables
-
-```bash
-chmod +x egc-*
-```
+- **Python** >= 3.8
+- **Linux** : PyQt5, PyQtWebEngine, Pillow, NumPy, Sounddevice
+- **Windows** : memes dependances, installees via `install.bat`
 
 ---
 
 ## License
 
-MIT License - Voir le fichier LICENSE pour plus de détails.
+MIT
 
 ---
 
-## Contribution
+## Auteur
 
-Les contributions sont bienvenues! Veuillez:
-
-1. Fork le projet
-2. Créer une branche (`git checkout -b feature/amazing`)
-3. Commit vos changements (`git commit -m 'Add amazing feature'`)
-4. Push vers la branche (`git push origin feature/amazing`)
-5. Ouvrir une Pull Request
-
----
-
-## Support
-
-Pour toute question ou problème, veuillez ouvrir une issue sur:
-**https://github.com/ManBoyx/E.G.C/issues**
-
----
-
-**Merci d'utiliser EGC Suite!**
+**ManBoyx** - [GitHub](https://github.com/ManBoyx)
