@@ -22,11 +22,11 @@ setup(
     ],
     python_requires='>=3.6',
     install_requires=[
-        'PyQt5>=5.15',
-        'PyQtWebEngine>=5.15',
-        'Pillow>=8.0',
-        'numpy>=1.19',
-        'sounddevice>=0.4.4',
+        'PyQt5>=5.15,<5.16',
+        'PyQtWebEngine>=5.15,<5.16',
+        'Pillow>=10.0',
+        'numpy>=1.26',
+        'sounddevice>=0.4.6',
     ],
     entry_points={
         'console_scripts': [

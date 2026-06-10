@@ -140,6 +140,9 @@ class BrowserTab(QWidget):
         text = self.url_bar.text().strip()
         if not text:
             return
+        if text.lower().startswith(("javascript:", "data:", "file:")):
+            logger.warning(f"Protocole bloqué: {text}")
+            return
         if '.' in text and ' ' not in text:
             if not text.startswith(("http://", "https://")):
                 text = "https://" + text
