@@ -1,13 +1,6 @@
 #!/usr/bin/env python3
 """EGC Suite - Éditeur Photo Optimisé pour Linux"""
-from src.photo.editor import PhotoEditor
-from src.common.app import run_tk_app
-
-
-def main():
-    """Point d'entrée principal"""
-    run_tk_app(PhotoEditor)
-
+from src.photo.editor import main
 
 if __name__ == "__main__":
     main()
