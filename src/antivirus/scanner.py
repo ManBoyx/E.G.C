@@ -1,13 +1,14 @@
 """Scanner de virus optimisé pour Linux"""
-import sys
 import logging
 from pathlib import Path
 from typing import List, Set
 from PyQt5.QtWidgets import (
-    QMainWindow, QVBoxLayout, QWidget, QPushButton, QTextEdit,
+    QVBoxLayout, QWidget, QPushButton, QTextEdit,
     QLabel, QFileDialog, QProgressBar, QComboBox, QTabWidget
 )
 from PyQt5.QtCore import QThread, pyqtSignal
+
+from src.common.app import EGCMainWindow, run_pyqt_app
 
 logger = logging.getLogger(__name__)
 
@@ -98,15 +99,15 @@ class ScanThread(QThread):
         self.stop_flag = True
 
 
-class VirusScanner(QMainWindow):
+class VirusScanner(EGCMainWindow):
     """Application scanner antivirus"""
+
+    window_title = "EGC Antivirus - Optimisé pour Linux"
+    window_size = (100, 100, 900, 700)
+
     def __init__(self):
-        super().__init__()
-        self.setWindowTitle("EGC Antivirus - Optimisé pour Linux")
-        self.setGeometry(100, 100, 900, 700)
         self.scan_thread = None
-        self.init_ui()
-        logger.info("Antivirus Scanner démarré")
+        super().__init__()
 
     def init_ui(self):
         """Initialise l'interface"""
@@ -163,3 +164,8 @@ class VirusScanner(QMainWindow):
             self.scan_thread.stop()
             self.scan_thread.wait()
         event.accept()
+
+
+def main():
+    """Point d'entrée pour console_scripts."""
+    run_pyqt_app(VirusScanner)

@@ -1,11 +1,12 @@
 """Amplificateur audio optimisé pour Linux"""
-import sys
 import logging
 import numpy as np
 from PyQt5.QtWidgets import (
-    QMainWindow, QVBoxLayout, QWidget, QPushButton, QSlider, QLabel
+    QVBoxLayout, QWidget, QPushButton, QSlider, QLabel
 )
 from PyQt5.QtCore import Qt
+
+from src.common.app import EGCMainWindow, run_pyqt_app
 
 try:
     import sounddevice as sd
@@ -16,15 +17,15 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class SoundAmplifier(QMainWindow):
+class SoundAmplifier(EGCMainWindow):
     """Amplificateur audio optimisé"""
+
+    window_title = "EGC Amplificateur Audio - Optimisé pour Linux"
+    window_size = (100, 100, 400, 250)
+
     def __init__(self):
-        super().__init__()
-        self.setWindowTitle("EGC Amplificateur Audio - Optimisé pour Linux")
-        self.setGeometry(100, 100, 400, 250)
         self.stream = None
-        self.init_ui()
-        logger.info("Amplificateur audio démarré")
+        super().__init__()
 
     def init_ui(self):
         """Initialise l'interface"""
@@ -78,3 +79,8 @@ class SoundAmplifier(QMainWindow):
         self.start_btn.setEnabled(True)
         self.stop_btn.setEnabled(False)
         logger.info("Amplification arrêtée")
+
+
+def main():
+    """Point d'entrée pour console_scripts."""
+    run_pyqt_app(SoundAmplifier)

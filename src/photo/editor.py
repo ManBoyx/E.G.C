@@ -2,8 +2,9 @@
 import tkinter as tk
 import logging
 from tkinter import filedialog, messagebox, colorchooser
-from pathlib import Path
 from PIL import Image, ImageDraw, ImageTk
+
+from src.common.app import run_tk_app
 
 logger = logging.getLogger(__name__)
 
@@ -114,3 +115,8 @@ class PhotoEditor:
         if self.image:
             self.tk_image = ImageTk.PhotoImage(self.image.resize((800, 600)))
             self.canvas.create_image(400, 300, image=self.tk_image)
+
+
+def main():
+    """Point d'entrée pour console_scripts."""
+    run_tk_app(PhotoEditor)
