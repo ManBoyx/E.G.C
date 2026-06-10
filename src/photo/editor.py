@@ -1,10 +1,11 @@
 """Éditeur photo optimisé pour Linux"""
-import sys
 import logging
 import tkinter as tk
 from tkinter import filedialog, messagebox, colorchooser, Menu
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageTk, ImageFilter, ImageEnhance
+
+from src.common.app import run_tk_app
 
 logger = logging.getLogger(__name__)
 
@@ -94,9 +95,9 @@ class PhotoEditor:
         tk.Label(controls, text="Outils", font=("Arial", 14, "bold")).pack(pady=10)
 
         # Boutons fichier
-        tk.Button(controls, text="📂 Ouvrir", command=self.load_image).pack(pady=3, fill=tk.X)
-        tk.Button(controls, text="💾 Sauvegarder", command=self.save_image).pack(pady=3, fill=tk.X)
-        tk.Button(controls, text="📄 Nouveau", command=self.new_image).pack(pady=3, fill=tk.X)
+        tk.Button(controls, text="📂Ouvrir", command=self.load_image).pack(pady=3, fill=tk.X)
+        tk.Button(controls, text="💾Sauvegarder", command=self.save_image).pack(pady=3, fill=tk.X)
+        tk.Button(controls, text="📄Nouveau", command=self.new_image).pack(pady=3, fill=tk.X)
 
         tk.Label(controls, text="─" * 25).pack(pady=5)
 
@@ -113,7 +114,7 @@ class PhotoEditor:
 
         tk.Label(controls, text="─" * 25).pack(pady=5)
 
-        tk.Button(controls, text="🎨 Couleur", command=self.choose_color).pack(pady=3, fill=tk.X)
+        tk.Button(controls, text="🎨Couleur", command=self.choose_color).pack(pady=3, fill=tk.X)
 
         tk.Label(controls, text="Taille du pinceau:").pack(pady=3)
         self.size_scale = tk.Scale(controls, from_=1, to=50, orient=tk.HORIZONTAL)
@@ -305,15 +306,5 @@ class PhotoEditor:
 
 
 def main():
-    """Point d'entrée principal"""
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-    root = tk.Tk()
-    PhotoEditor(root)
-    root.mainloop()
-
-
-if __name__ == "__main__":
-    main()
+    """Point d'entrée pour console_scripts."""
+    run_tk_app(PhotoEditor)

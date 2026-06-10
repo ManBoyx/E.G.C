@@ -1,14 +1,15 @@
 """Scanner de virus optimisé pour Linux"""
-import sys
 import logging
 from pathlib import Path
 from typing import List, Set
 from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget,
+    QVBoxLayout, QHBoxLayout, QWidget,
     QPushButton, QTextEdit, QLabel, QFileDialog, QProgressBar,
     QComboBox, QTabWidget, QListWidget, QListWidgetItem, QMessageBox
 )
 from PyQt5.QtCore import QThread, pyqtSignal, Qt
+
+from src.common.app import EGCMainWindow, run_pyqt_app
 
 logger = logging.getLogger(__name__)
 
@@ -37,18 +38,18 @@ class ScanThread(QThread):
             total = self._count_files(self.directory)
             if self.infected_files:
                 self.update_signal.emit(
-                    f"⚠️ {len(self.infected_files)} fichier(s) infecté(s) trouvé(s)"
+                    f"⚠ {len(self.infected_files)} fichier(s) infecté(s) trouvé(s)"
                 )
                 for file in self.infected_files:
                     if self.stop_flag:
                         break
-                    self.update_signal.emit(f"  🔴 {file}")
+                    self.update_signal.emit(f"  🔴{file}")
                     self.quarantine_file(file)
             else:
-                self.update_signal.emit("✅ Aucun fichier infecté trouvé")
+                self.update_signal.emit("✅Aucun fichier infecté trouvé")
             self.finished_signal.emit(total, len(self.infected_files))
         except Exception as e:
-            self.update_signal.emit(f"❌ Erreur: {str(e)}")
+            self.update_signal.emit(f"❌Erreur: {str(e)}")
             logger.error(f"Erreur lors du scan: {e}")
 
     def _count_files(self, directory: str) -> int:
@@ -112,16 +113,16 @@ class ScanThread(QThread):
         self.stop_flag = True
 
 
-class VirusScanner(QMainWindow):
+class VirusScanner(EGCMainWindow):
     """Application scanner antivirus"""
+
+    window_title = "EGC Antivirus - Optimisé pour Linux"
+    window_size = (100, 100, 900, 700)
+
     def __init__(self):
-        super().__init__()
-        self.setWindowTitle("EGC Antivirus - Optimisé pour Linux")
-        self.setGeometry(100, 100, 900, 700)
         self.scan_thread = None
         self.scan_history: List[str] = []
-        self.init_ui()
-        logger.info("Antivirus Scanner démarré")
+        super().__init__()
 
     def init_ui(self):
         """Initialise l'interface"""
@@ -129,13 +130,13 @@ class VirusScanner(QMainWindow):
         self.setCentralWidget(self.tabs)
 
         scan_widget = self.create_scanner_tab()
-        self.tabs.addTab(scan_widget, "🔍 Scanner")
+        self.tabs.addTab(scan_widget, "🔍Scanner")
 
         quarantine_widget = self.create_quarantine_tab()
-        self.tabs.addTab(quarantine_widget, "🔒 Quarantaine")
+        self.tabs.addTab(quarantine_widget, "🔒Quarantaine")
 
         history_widget = self.create_history_tab()
-        self.tabs.addTab(history_widget, "📋 Historique")
+        self.tabs.addTab(history_widget, "📋Historique")
 
     def create_scanner_tab(self) -> QWidget:
         """Crée l'onglet scanner"""
@@ -153,7 +154,7 @@ class VirusScanner(QMainWindow):
         layout.addWidget(self.scan_type)
 
         btn_layout = QHBoxLayout()
-        self.scan_button = QPushButton("🔍 Démarrer le scan")
+        self.scan_button = QPushButton("🔍Démarrer le scan")
         self.scan_button.setStyleSheet(
             "QPushButton { background-color: #2196F3; color: white; padding: 10px; "
             "border-radius: 5px; font-size: 14px; }"
@@ -162,7 +163,7 @@ class VirusScanner(QMainWindow):
         self.scan_button.clicked.connect(self.start_scan)
         btn_layout.addWidget(self.scan_button)
 
-        self.stop_button = QPushButton("⏹️ Arrêter")
+        self.stop_button = QPushButton("⏹ Arrêter")
         self.stop_button.setStyleSheet(
             "QPushButton { background-color: #f44336; color: white; padding: 10px; "
             "border-radius: 5px; font-size: 14px; }"
@@ -205,11 +206,11 @@ class VirusScanner(QMainWindow):
         layout.addWidget(self.quarantine_list)
 
         btn_layout = QHBoxLayout()
-        refresh_btn = QPushButton("🔄 Rafraîchir")
+        refresh_btn = QPushButton("🔄Rafraîchir")
         refresh_btn.clicked.connect(self.refresh_quarantine)
         btn_layout.addWidget(refresh_btn)
 
-        delete_btn = QPushButton("🗑️ Supprimer sélection")
+        delete_btn = QPushButton("🗑 Supprimer sélection")
         delete_btn.clicked.connect(self.delete_quarantined)
         btn_layout.addWidget(delete_btn)
 
@@ -240,7 +241,7 @@ class VirusScanner(QMainWindow):
         if directory:
             self.progress.setValue(0)
             self.result_text.clear()
-            self.result_text.append("🔄 Scan en cours...\n")
+            self.result_text.append("🔄Scan en cours...\n")
             self.status_label.setText(f"Scan de {directory}...")
             self.scan_button.setEnabled(False)
             self.stop_button.setEnabled(True)
@@ -255,7 +256,7 @@ class VirusScanner(QMainWindow):
         """Arrête le scan en cours"""
         if self.scan_thread and self.scan_thread.isRunning():
             self.scan_thread.stop()
-            self.result_text.append("\n⏹️ Scan arrêté par l'utilisateur")
+            self.result_text.append("\n⏹ Scan arrêté par l'utilisateur")
             self.status_label.setText("Scan arrêté")
             self.scan_button.setEnabled(True)
             self.stop_button.setEnabled(False)
@@ -309,16 +310,5 @@ class VirusScanner(QMainWindow):
 
 
 def main():
-    """Point d'entrée principal"""
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-    app = QApplication(sys.argv)
-    scanner = VirusScanner()
-    scanner.show()
-    sys.exit(app.exec_())
-
-
-if __name__ == "__main__":
-    main()
+    """Point d'entrée pour console_scripts."""
+    run_pyqt_app(VirusScanner)

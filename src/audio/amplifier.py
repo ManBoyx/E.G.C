@@ -1,12 +1,13 @@
 """Amplificateur audio optimisé pour Linux"""
-import sys
 import logging
 import numpy as np
 from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget,
+    QVBoxLayout, QHBoxLayout, QWidget,
     QPushButton, QSlider, QLabel, QMessageBox, QGroupBox
 )
 from PyQt5.QtCore import Qt
+
+from src.common.app import EGCMainWindow, run_pyqt_app
 
 try:
     import sounddevice as sd
@@ -17,16 +18,16 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class SoundAmplifier(QMainWindow):
+class SoundAmplifier(EGCMainWindow):
     """Amplificateur audio optimisé"""
+
+    window_title = "EGC Amplificateur Audio - Optimisé pour Linux"
+    window_size = (100, 100, 450, 350)
+
     def __init__(self):
-        super().__init__()
-        self.setWindowTitle("EGC Amplificateur Audio - Optimisé pour Linux")
-        self.setGeometry(100, 100, 450, 350)
         self.stream = None
         self.is_running = False
-        self.init_ui()
-        logger.info("Amplificateur audio démarré")
+        super().__init__()
 
     def init_ui(self):
         """Initialise l'interface"""
@@ -72,7 +73,7 @@ class SoundAmplifier(QMainWindow):
         # Boutons
         btn_layout = QHBoxLayout()
 
-        self.start_btn = QPushButton("▶️ Démarrer")
+        self.start_btn = QPushButton("▶ Démarrer")
         self.start_btn.setStyleSheet(
             "QPushButton { background-color: #4CAF50; color: white; padding: 10px; "
             "border-radius: 5px; font-size: 14px; }"
@@ -82,7 +83,7 @@ class SoundAmplifier(QMainWindow):
         self.start_btn.clicked.connect(self.start_amplification)
         btn_layout.addWidget(self.start_btn)
 
-        self.stop_btn = QPushButton("⏹️ Arrêter")
+        self.stop_btn = QPushButton("⏹ Arrêter")
         self.stop_btn.setStyleSheet(
             "QPushButton { background-color: #f44336; color: white; padding: 10px; "
             "border-radius: 5px; font-size: 14px; }"
@@ -101,7 +102,7 @@ class SoundAmplifier(QMainWindow):
         layout.addWidget(self.status_label)
 
         if not SOUNDDEVICE_AVAILABLE:
-            warning = QLabel("⚠️ Module 'sounddevice' non installé.\n"
+            warning = QLabel("⚠ Module 'sounddevice' non installé.\n"
                              "Installez-le avec: pip3 install sounddevice")
             warning.setStyleSheet("color: #f44336; padding: 10px;")
             warning.setAlignment(Qt.AlignCenter)
@@ -192,16 +193,5 @@ class SoundAmplifier(QMainWindow):
 
 
 def main():
-    """Point d'entrée principal"""
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-    app = QApplication(sys.argv)
-    amplifier = SoundAmplifier()
-    amplifier.show()
-    sys.exit(app.exec_())
-
-
-if __name__ == "__main__":
-    main()
+    """Point d'entrée pour console_scripts."""
+    run_pyqt_app(SoundAmplifier)

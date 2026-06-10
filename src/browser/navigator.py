@@ -1,13 +1,14 @@
 """Navigateur web optimisé pour Linux"""
-import sys
 import logging
 from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QLineEdit, QPushButton, QVBoxLayout,
+    QLineEdit, QPushButton, QVBoxLayout,
     QHBoxLayout, QWidget, QTabWidget, QToolBar, QAction, QMenu,
     QMenuBar, QMessageBox, QStatusBar
 )
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
 from PyQt5.QtCore import QUrl, Qt
+
+from src.common.app import EGCMainWindow, run_pyqt_app
 
 logger = logging.getLogger(__name__)
 
@@ -97,14 +98,11 @@ class BrowserTab(QWidget):
         pass
 
 
-class OptimizedBrowser(QMainWindow):
+class OptimizedBrowser(EGCMainWindow):
     """Navigateur web léger avec onglets"""
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("EGC Navigateur - Optimisé pour Linux")
-        self.setGeometry(100, 100, 1200, 800)
-        self.init_ui()
-        logger.info("Navigateur web démarré")
+
+    window_title = "EGC Navigateur - Optimisé pour Linux"
+    window_size = (100, 100, 1200, 800)
 
     def init_ui(self):
         """Initialise l'interface"""
@@ -117,7 +115,7 @@ class OptimizedBrowser(QMainWindow):
         self.create_menu()
 
         toolbar = self.addToolBar("Navigation")
-        toolbar.addAction("➕ Nouvel Onglet", self.add_tab)
+        toolbar.addAction("➕Nouvel Onglet", self.add_tab)
 
         self.statusBar().showMessage("Prêt")
 
@@ -211,16 +209,5 @@ class OptimizedBrowser(QMainWindow):
 
 
 def main():
-    """Point d'entrée principal"""
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-    app = QApplication(sys.argv)
-    browser = OptimizedBrowser()
-    browser.show()
-    sys.exit(app.exec_())
-
-
-if __name__ == "__main__":
-    main()
+    """Point d'entrée pour console_scripts."""
+    run_pyqt_app(OptimizedBrowser)
