@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EGC Navigateur</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1e1e2e;
+            color: #cdd6f4;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title-bar {
+            background: #181825;
+            padding: 0.4rem 1rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #313244;
+        }
+        .title-bar h1 {
+            font-size: 0.9rem;
+            color: #89b4fa;
+        }
+
+        .tab-bar {
+            background: #181825;
+            display: flex;
+            align-items: center;
+            padding: 0 0.5rem;
+            gap: 2px;
+            border-bottom: 1px solid #313244;
+        }
+        .browser-tab {
+            padding: 0.5rem 1rem;
+            background: #313244;
+            border-radius: 8px 8px 0 0;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            max-width: 200px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .browser-tab.active { background: #45475a; color: #89b4fa; }
+        .browser-tab .close-tab {
+            cursor: pointer;
+            opacity: 0.5;
+            font-size: 0.7rem;
+        }
+        .browser-tab .close-tab:hover { opacity: 1; }
+        .new-tab-btn {
+            width: 28px;
+            height: 28px;
+            background: none;
+            border: none;
+            color: #a6adc8;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .new-tab-btn:hover { background: #313244; }
+
+        .nav-bar {
+            background: #1e1e2e;
+            padding: 0.5rem;
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            border-bottom: 1px solid #313244;
+        }
+        .nav-btn {
+            width: 32px;
+            height: 32px;
+            background: #313244;
+            border: none;
+            color: #cdd6f4;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .nav-btn:hover { background: #45475a; }
+        .nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+        .url-input {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            background: #313244;
+            color: #cdd6f4;
+            border: 1px solid #45475a;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .url-input:focus { border-color: #89b4fa; }
+
+        .browser-content {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        .browser-content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #fff;
+        }
+
+        .welcome-page {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #11111b;
+            gap: 2rem;
+        }
+        .welcome-page h2 { color: #89b4fa; font-size: 2rem; }
+        .welcome-page p { color: #a6adc8; }
+
+        .shortcuts {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            max-width: 600px;
+        }
+        .shortcut {
+            background: #313244;
+            padding: 1.2rem;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            text-decoration: none;
+            color: #cdd6f4;
+        }
+        .shortcut:hover { background: #45475a; transform: scale(1.05); }
+        .shortcut .icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .shortcut .name { font-size: 0.8rem; }
+
+        .status-bar {
+            background: #181825;
+            padding: 0.3rem 1rem;
+            font-size: 0.7rem;
+            color: #585b70;
+            border-top: 1px solid #313244;
+        }
+
+        @media (max-width: 600px) {
+            .shortcuts { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="title-bar">
+        <h1>EGC Navigateur</h1>
+    </div>
+
+    <div class="tab-bar" id="tab-bar">
+        <div class="browser-tab active" id="tab-0" onclick="switchBrowserTab(0)">
+            <span class="tab-title">Nouvel onglet</span>
+            <span class="close-tab" onclick="closeTab(0, event)">✕</span>
+        </div>
+        <button class="new-tab-btn" onclick="addTab()">+</button>
+    </div>
+
+    <div class="nav-bar">
+        <button class="nav-btn" id="btn-back" onclick="goBack()" disabled>◀</button>
+        <button class="nav-btn" id="btn-forward" onclick="goForward()" disabled>▶</button>
+        <button class="nav-btn" onclick="reload()">⟳</button>
+        <button class="nav-btn" onclick="goHome()">🏠</button>
+        <input type="text" class="url-input" id="url-input" placeholder="Entrez une URL ou recherchez..." onkeydown="if(event.key==='Enter')navigate()">
+    </div>
+
+    <div class="browser-content" id="browser-content">
+        <div class="welcome-page" id="welcome-page">
+            <h2>EGC Navigateur</h2>
+            <p>Tapez une URL ou cliquez sur un raccourci</p>
+            <div class="shortcuts">
+                <div class="shortcut" onclick="navigateTo('https://www.google.com')">
+                    <div class="icon">🔍</div>
+                    <div class="name">Google</div>
+                </div>
+                <div class="shortcut" onclick="navigateTo('https://www.wikipedia.org')">
+                    <div class="icon">📚</div>
+                    <div class="name">Wikipedia</div>
+                </div>
+                <div class="shortcut" onclick="navigateTo('https://www.youtube.com')">
+                    <div class="icon">▶️</div>
+                    <div class="name">YouTube</div>
+                </div>
+                <div class="shortcut" onclick="navigateTo('https://github.com')">
+                    <div class="icon">💻</div>
+                    <div class="name">GitHub</div>
+                </div>
+                <div class="shortcut" onclick="navigateTo('https://search.brave.com')">
+                    <div class="icon">🦁</div>
+                    <div class="name">Brave Search</div>
+                </div>
+                <div class="shortcut" onclick="navigateTo('https://www.reddit.com')">
+                    <div class="icon">🤖</div>
+                    <div class="name">Reddit</div>
+                </div>
+                <div class="shortcut" onclick="navigateTo('https://translate.google.com')">
+                    <div class="icon">🌐</div>
+                    <div class="name">Translate</div>
+                </div>
+                <div class="shortcut" onclick="navigateTo('https://www.openstreetmap.org')">
+                    <div class="icon">🗺️</div>
+                    <div class="name">Maps</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-bar" id="status-bar">Prêt</div>
+
+    <script>
+        let tabs = [{ title: 'Nouvel onglet', url: '', history: [], historyIndex: -1 }];
+        let activeTab = 0;
+
+        function navigate() {
+            let text = document.getElementById('url-input').value.trim();
+            if (!text) return;
+
+            if (text.toLowerCase().startsWith('javascript:') ||
+                text.toLowerCase().startsWith('data:') ||
+                text.toLowerCase().startsWith('file:')) {
+                document.getElementById('status-bar').textContent = 'Protocole bloqué';
+                return;
+            }
+
+            if (text.includes('.') && !text.includes(' ')) {
+                if (!text.startsWith('http://') && !text.startsWith('https://')) {
+                    text = 'https://' + text;
+                }
+            } else {
+                text = 'https://search.brave.com/search?q=' + encodeURIComponent(text);
+            }
+
+            navigateTo(text);
+        }
+
+        function navigateTo(url) {
+            document.getElementById('url-input').value = url;
+            document.getElementById('welcome-page').style.display = 'none';
+
+            let iframe = document.getElementById('iframe-' + activeTab);
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'iframe-' + activeTab;
+                iframe.sandbox = 'allow-same-origin allow-scripts allow-popups allow-forms';
+                document.getElementById('browser-content').appendChild(iframe);
+            }
+            iframe.style.display = 'block';
+            iframe.src = url;
+
+            tabs[activeTab].url = url;
+            tabs[activeTab].title = url.replace(/https?:\/\/(www\.)?/, '').split('/')[0];
+            tabs[activeTab].history.push(url);
+            tabs[activeTab].historyIndex = tabs[activeTab].history.length - 1;
+
+            updateTabBar();
+            updateNavButtons();
+            document.getElementById('status-bar').textContent = url;
+        }
+
+        function goBack() {
+            const tab = tabs[activeTab];
+            if (tab.historyIndex > 0) {
+                tab.historyIndex--;
+                const url = tab.history[tab.historyIndex];
+                document.getElementById('url-input').value = url;
+                const iframe = document.getElementById('iframe-' + activeTab);
+                if (iframe) iframe.src = url;
+                updateNavButtons();
+            }
+        }
+
+        function goForward() {
+            const tab = tabs[activeTab];
+            if (tab.historyIndex < tab.history.length - 1) {
+                tab.historyIndex++;
+                const url = tab.history[tab.historyIndex];
+                document.getElementById('url-input').value = url;
+                const iframe = document.getElementById('iframe-' + activeTab);
+                if (iframe) iframe.src = url;
+                updateNavButtons();
+            }
+        }
+
+        function reload() {
+            const iframe = document.getElementById('iframe-' + activeTab);
+            if (iframe) iframe.src = iframe.src;
+        }
+
+        function goHome() {
+            document.getElementById('url-input').value = '';
+            const iframe = document.getElementById('iframe-' + activeTab);
+            if (iframe) iframe.style.display = 'none';
+            document.getElementById('welcome-page').style.display = 'flex';
+            document.getElementById('status-bar').textContent = 'Prêt';
+        }
+
+        function addTab() {
+            tabs.push({ title: 'Nouvel onglet', url: '', history: [], historyIndex: -1 });
+            activeTab = tabs.length - 1;
+
+            document.querySelectorAll('#browser-content iframe').forEach(f => f.style.display = 'none');
+            document.getElementById('welcome-page').style.display = 'flex';
+            document.getElementById('url-input').value = '';
+
+            updateTabBar();
+            updateNavButtons();
+        }
+
+        function switchBrowserTab(index) {
+            activeTab = index;
+            document.querySelectorAll('#browser-content iframe').forEach(f => f.style.display = 'none');
+
+            const iframe = document.getElementById('iframe-' + index);
+            if (iframe && tabs[index].url) {
+                iframe.style.display = 'block';
+                document.getElementById('welcome-page').style.display = 'none';
+                document.getElementById('url-input').value = tabs[index].url;
+            } else {
+                document.getElementById('welcome-page').style.display = 'flex';
+                document.getElementById('url-input').value = '';
+            }
+
+            updateTabBar();
+            updateNavButtons();
+        }
+
+        function closeTab(index, e) {
+            e.stopPropagation();
+            if (tabs.length === 1) return;
+            const iframe = document.getElementById('iframe-' + index);
+            if (iframe) iframe.remove();
+            tabs.splice(index, 1);
+            if (activeTab >= tabs.length) activeTab = tabs.length - 1;
+            switchBrowserTab(activeTab);
+        }
+
+        function updateTabBar() {
+            const bar = document.getElementById('tab-bar');
+            bar.innerHTML = '';
+            tabs.forEach((tab, i) => {
+                const div = document.createElement('div');
+                div.className = 'browser-tab' + (i === activeTab ? ' active' : '');
+                div.onclick = () => switchBrowserTab(i);
+                div.innerHTML = `<span class="tab-title">${tab.title || 'Nouvel onglet'}</span><span class="close-tab" onclick="closeTab(${i}, event)">✕</span>`;
+                bar.appendChild(div);
+            });
+            const btn = document.createElement('button');
+            btn.className = 'new-tab-btn';
+            btn.onclick = addTab;
+            btn.textContent = '+';
+            bar.appendChild(btn);
+        }
+
+        function updateNavButtons() {
+            const tab = tabs[activeTab];
+            document.getElementById('btn-back').disabled = tab.historyIndex <= 0;
+            document.getElementById('btn-forward').disabled = tab.historyIndex >= tab.history.length - 1;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EGC Antivirus</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1e1e2e;
+            color: #cdd6f4;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: #89b4fa; margin-bottom: 1.5rem; text-align: center; }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 1rem;
+        }
+        .tab {
+            padding: 0.7rem 1.5rem;
+            background: #313244;
+            border: none;
+            color: #cdd6f4;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            font-size: 0.9rem;
+        }
+        .tab.active { background: #45475a; color: #89b4fa; font-weight: bold; }
+
+        .panel {
+            display: none;
+            background: #313244;
+            border-radius: 0 8px 8px 8px;
+            padding: 1.5rem;
+        }
+        .panel.active { display: block; }
+
+        label { display: block; margin-bottom: 0.5rem; color: #a6adc8; }
+        select, input[type="text"] {
+            width: 100%;
+            padding: 0.6rem;
+            background: #1e1e2e;
+            color: #cdd6f4;
+            border: 1px solid #45475a;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+        .btn {
+            padding: 0.7rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .btn-primary { background: #89b4fa; color: #1e1e2e; }
+        .btn-primary:hover { background: #74a8fc; }
+        .btn-danger { background: #f38ba8; color: #1e1e2e; }
+        .btn-danger:hover { background: #f17497; }
+        .btn-success { background: #a6e3a1; color: #1e1e2e; }
+        .btn-success:hover { background: #94d990; }
+
+        .progress-container {
+            background: #1e1e2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 1rem 0;
+            height: 24px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #89b4fa, #74c7ec);
+            width: 0%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            color: #1e1e2e;
+            font-weight: bold;
+        }
+
+        .log-area {
+            background: #1e1e2e;
+            border: 1px solid #45475a;
+            border-radius: 6px;
+            padding: 1rem;
+            height: 250px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+        }
+        .log-entry { margin-bottom: 0.3rem; }
+        .log-clean { color: #a6e3a1; }
+        .log-infected { color: #f38ba8; }
+        .log-info { color: #89b4fa; }
+
+        .file-list {
+            list-style: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .file-list li {
+            padding: 0.5rem;
+            background: #1e1e2e;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .stat-card {
+            background: #1e1e2e;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-card .number { font-size: 2rem; font-weight: bold; color: #89b4fa; }
+        .stat-card .label { color: #a6adc8; font-size: 0.8rem; }
+
+        @media (max-width: 600px) {
+            .stats { grid-template-columns: 1fr; }
+            .tabs { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>EGC Antivirus</h1>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="number" id="stat-scanned">0</div>
+                <div class="label">Fichiers scannés</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="stat-infected" style="color:#f38ba8">0</div>
+                <div class="label">Menaces détectées</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="stat-quarantine" style="color:#a6e3a1">0</div>
+                <div class="label">En quarantaine</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('scanner')">Scanner</button>
+            <button class="tab" onclick="switchTab('quarantine')">Quarantaine</button>
+            <button class="tab" onclick="switchTab('history')">Historique</button>
+        </div>
+
+        <div class="panel active" id="panel-scanner">
+            <label>Type de scan :</label>
+            <select id="scan-type">
+                <option>Scan rapide</option>
+                <option>Scan complet</option>
+            </select>
+
+            <div style="display:flex; gap:0.5rem;">
+                <button class="btn btn-primary" onclick="startScan()">Démarrer le scan</button>
+                <button class="btn btn-danger" onclick="stopScan()" id="btn-stop" disabled>Arrêter</button>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar">0%</div>
+            </div>
+
+            <div class="log-area" id="log-area"></div>
+        </div>
+
+        <div class="panel" id="panel-quarantine">
+            <h3 style="margin-bottom:1rem;">Fichiers en quarantaine</h3>
+            <ul class="file-list" id="quarantine-list">
+                <li style="color:#a6adc8;">Aucun fichier en quarantaine.</li>
+            </ul>
+        </div>
+
+        <div class="panel" id="panel-history">
+            <h3 style="margin-bottom:1rem;">Historique des scans</h3>
+            <div class="log-area" id="history-log" style="height:300px;"></div>
+        </div>
+    </div>
+
+    <script>
+        let scanning = false;
+        let scanInterval = null;
+        let scannedCount = 0;
+        let infectedCount = 0;
+        let quarantineFiles = [];
+
+        const fakeFiles = [
+            '/home/user/documents/rapport.pdf',
+            '/home/user/downloads/setup.exe',
+            '/home/user/pictures/photo.jpg',
+            '/home/user/.config/settings.json',
+            '/usr/local/bin/app',
+            '/tmp/cache/data.tmp',
+            '/home/user/downloads/crack_keygen.exe',
+            '/home/user/music/song.mp3',
+            '/var/log/system.log',
+            '/home/user/documents/notes.txt',
+            '/home/user/downloads/free_movie.avi.exe',
+            '/home/user/.ssh/config',
+            '/opt/tools/utility',
+            '/home/user/code/main.py',
+            '/home/user/downloads/patch.bin',
+        ];
+
+        const maliciousFiles = [
+            '/home/user/downloads/crack_keygen.exe',
+            '/home/user/downloads/free_movie.avi.exe',
+        ];
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('panel-' + tab).classList.add('active');
+        }
+
+        function log(msg, cls = '') {
+            const area = document.getElementById('log-area');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry ' + cls;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            area.appendChild(entry);
+            area.scrollTop = area.scrollHeight;
+        }
+
+        function startScan() {
+            if (scanning) return;
+            scanning = true;
+            scannedCount = 0;
+            infectedCount = 0;
+            document.getElementById('log-area').innerHTML = '';
+            document.getElementById('btn-stop').disabled = false;
+            document.getElementById('progress-bar').style.width = '0%';
+
+            const scanType = document.getElementById('scan-type').value;
+            log(`Démarrage: ${scanType}...`, 'log-info');
+
+            let index = 0;
+            const total = fakeFiles.length;
+            const delay = scanType === 'Scan rapide' ? 400 : 800;
+
+            scanInterval = setInterval(() => {
+                if (!scanning || index >= total) {
+                    clearInterval(scanInterval);
+                    scanning = false;
+                    document.getElementById('btn-stop').disabled = true;
+                    const pct = Math.min(100, Math.round((index / total) * 100));
+                    document.getElementById('progress-bar').style.width = pct + '%';
+                    document.getElementById('progress-bar').textContent = pct + '%';
+                    log(infectedCount > 0
+                        ? `Scan terminé — ${infectedCount} menace(s) détectée(s)`
+                        : 'Scan terminé — aucune menace', infectedCount > 0 ? 'log-infected' : 'log-clean');
+                    addHistory(scanType, scannedCount, infectedCount);
+                    return;
+                }
+
+                const file = fakeFiles[index];
+                scannedCount++;
+                const isMalicious = maliciousFiles.includes(file);
+
+                if (isMalicious) {
+                    infectedCount++;
+                    log(`MENACE: ${file}`, 'log-infected');
+                    quarantineFile(file);
+                } else {
+                    log(`OK: ${file}`, 'log-clean');
+                }
+
+                index++;
+                const pct = Math.round((index / total) * 100);
+                document.getElementById('progress-bar').style.width = pct + '%';
+                document.getElementById('progress-bar').textContent = pct + '%';
+                document.getElementById('stat-scanned').textContent = scannedCount;
+                document.getElementById('stat-infected').textContent = infectedCount;
+            }, delay);
+        }
+
+        function stopScan() {
+            scanning = false;
+            clearInterval(scanInterval);
+            document.getElementById('btn-stop').disabled = true;
+            log('Scan arrêté par l\'utilisateur.', 'log-info');
+        }
+
+        function quarantineFile(file) {
+            quarantineFiles.push(file);
+            document.getElementById('stat-quarantine').textContent = quarantineFiles.length;
+            updateQuarantineList();
+        }
+
+        function updateQuarantineList() {
+            const list = document.getElementById('quarantine-list');
+            list.innerHTML = '';
+            if (quarantineFiles.length === 0) {
+                list.innerHTML = '<li style="color:#a6adc8;">Aucun fichier en quarantaine.</li>';
+                return;
+            }
+            quarantineFiles.forEach((file, i) => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${file}</span><button class="btn btn-success" style="padding:0.3rem 0.7rem;font-size:0.75rem;" onclick="restoreFile(${i})">Restaurer</button>`;
+                list.appendChild(li);
+            });
+        }
+
+        function restoreFile(index) {
+            quarantineFiles.splice(index, 1);
+            document.getElementById('stat-quarantine').textContent = quarantineFiles.length;
+            updateQuarantineList();
+        }
+
+        function addHistory(type, scanned, infected) {
+            const historyLog = document.getElementById('history-log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry log-info';
+            entry.textContent = `[${new Date().toLocaleString()}] ${type} — ${scanned} fichiers, ${infected} menace(s)`;
+            historyLog.prepend(entry);
+        }
+    </script>
+</body>
+</html>
