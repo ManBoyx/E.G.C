@@ -141,6 +141,7 @@ class SoundAmplifier(QMainWindow):
                 "Le module 'sounddevice' n'est pas installé.\n"
                 "Installez-le avec: pip3 install sounddevice"
             )
+            logger.error("sounddevice non disponible")
             return
 
         self.start_btn.setEnabled(False)
@@ -161,11 +162,12 @@ class SoundAmplifier(QMainWindow):
             self.status_label.setStyleSheet("color: #4CAF50;")
             logger.info(f"Amplification démarrée (facteur: {factor})")
         except Exception as e:
-            QMessageBox.critical(self, "Erreur", f"Impossible de démarrer l'amplification:\n{e}")
-            logger.error(f"Erreur amplification: {e}")
             self.start_btn.setEnabled(True)
             self.stop_btn.setEnabled(False)
             self.slider.setEnabled(True)
+            self.stream = None
+            QMessageBox.critical(self, "Erreur", f"Impossible de démarrer l'amplification:\n{e}")
+            logger.error(f"Erreur amplification: {e}")
 
     def stop_amplification(self):
         """Arrête l'amplification"""
@@ -174,8 +176,9 @@ class SoundAmplifier(QMainWindow):
                 self.stream.stop()
                 self.stream.close()
             except Exception as e:
-                logger.error(f"Erreur arrêt: {e}")
-            self.stream = None
+                logger.error(f"Erreur lors de l'arrêt du flux audio: {e}")
+            finally:
+                self.stream = None
         self.is_running = False
         self.start_btn.setEnabled(True)
         self.stop_btn.setEnabled(False)

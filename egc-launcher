@@ -4,7 +4,6 @@ import sys
 import subprocess
 from pathlib import Path
 
-
 APPS = {
     '1': ('egc-antivirus', 'Antivirus Scanner'),
     '2': ('egc-photo-editor', 'Photo Editor'),
@@ -29,7 +28,11 @@ def main():
         print("    5) Quitter")
         print()
 
-        choice = input("    Votre choix (1-5): ").strip()
+        try:
+            choice = input("    Votre choix (1-5): ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\n    Au revoir!")
+            sys.exit(0)
 
         if choice == '5':
             print("    Au revoir!")
@@ -42,8 +45,11 @@ def main():
             app_path = script_dir / app_cmd
             try:
                 subprocess.run([sys.executable, str(app_path)], check=True)
+            except FileNotFoundError:
+                print(f"    Erreur: L'application '{app_cmd}' est introuvable.")
+                print("    Vérifiez que les exécutables sont dans le répertoire courant.")
             except subprocess.CalledProcessError as e:
-                print(f"    Erreur lors du lancement: {e}")
+                print(f"    Erreur: L'application '{app_name}' s'est terminée avec le code {e.returncode}.")
             except KeyboardInterrupt:
                 print("\n    Application fermée.")
         else:
