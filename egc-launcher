@@ -1,48 +1,54 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""Script principal pour lancer les applications"""
+"""EGC Suite - Lanceur d'applications"""
 import sys
 import subprocess
 from pathlib import Path
 
+
+APPS = {
+    '1': ('egc-antivirus', 'Antivirus Scanner'),
+    '2': ('egc-photo-editor', 'Photo Editor'),
+    '3': ('egc-browser', 'Web Browser'),
+    '4': ('egc-audio-amplifier', 'Audio Amplifier'),
+}
+
+
 def main():
-    """Affiche le menu principal"""
-    print("""
+    """Affiche le menu principal et lance l'application choisie"""
+    while True:
+        print("""
     ╔════════════════════════════════════════╗
     ║        EGC Suite v1.0.0                ║
     ║   Applications optimisées pour Linux   ║
     ╚════════════════════════════════════════╝
-    
+
     Sélectionnez une application:
-    
-    1) 🔒  Antivirus Scanner
-    2) 🖼️  Photo Editor
-    3) 🌐  Web Browser
-    4) 🔊  Audio Amplifier
-    5) ❌  Quitter
-    """)
-    
-    choice = input("Votre choix (1-5): ").strip()
-    
-    apps = {
-        '1': 'egc-antivirus',
-        '2': 'egc-photo-editor',
-        '3': 'egc-browser',
-        '4': 'egc-audio-amplifier',
-    }
-    
-    if choice in apps:
-        try:
-            subprocess.run([apps[choice]], check=True)
-        except Exception as e:
-            print(f"Erreur: {e}")
-            sys.exit(1)
-    elif choice == '5':
-        print("Au revoir!")
-        sys.exit(0)
-    else:
-        print("Choix invalide!")
-        main()
+""")
+        for key, (_, name) in APPS.items():
+            print(f"    {key}) {name}")
+        print("    5) Quitter")
+        print()
+
+        choice = input("    Votre choix (1-5): ").strip()
+
+        if choice == '5':
+            print("    Au revoir!")
+            sys.exit(0)
+
+        if choice in APPS:
+            app_cmd, app_name = APPS[choice]
+            print(f"\n    Lancement de {app_name}...")
+            script_dir = Path(__file__).resolve().parent
+            app_path = script_dir / app_cmd
+            try:
+                subprocess.run([sys.executable, str(app_path)], check=True)
+            except subprocess.CalledProcessError as e:
+                print(f"    Erreur lors du lancement: {e}")
+            except KeyboardInterrupt:
+                print("\n    Application fermée.")
+        else:
+            print("    Choix invalide, réessayez.")
+
 
 if __name__ == "__main__":
     main()

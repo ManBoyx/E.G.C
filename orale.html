@@ -3,223 +3,601 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Explorateur de Métiers : Hôtellerie-Restauration</title>
+    <title>Mon Parcours Avenir - Hôtellerie-Restauration</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- 
-    Chosen Palette: Warm Neutrals and Teal 
-    Application Structure Plan: The application is structured as a single-page interactive explorer rather than a linear slideshow. It uses a main introduction, a tab-based navigation for the three job roles (Maître d'Hôtel, Cuisinier, Serveur), and a final summary section with an interactive comparison chart. This structure was chosen to empower the user with control over their exploration path, allowing for easy, non-linear access to information and direct comparison, which enhances understanding and engagement far better than a static, sequential presentation.
-    Visualization & Content Choices:
-    - Report Info: Individual job descriptions (missions, qualities, evolution). -> Goal: Inform & Explore. -> Presentation Method: Tabbed content panels with styled cards and icons. -> Interaction: User clicks on a tab to display the relevant job information. -> Justification: This is a standard, intuitive UI pattern that organizes a large amount of information cleanly without overwhelming the user.
-    - Report Info: Lists of required qualities for each job. -> Goal: Compare & Synthesize. -> Viz/Presentation Method: An interactive radar chart (using Chart.js on a Canvas element). -> Interaction: Hovering over points on the chart reveals tooltips with specific data. -> Justification: The radar chart provides an immediate, powerful visual summary of how the jobs compare on key attributes. It transforms lists of text into an insightful data visualization, making the similarities and differences instantly clear.
-    CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
-    -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        * { scroll-behavior: smooth; }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #fdfaf6;
-            color: #4a4a4a;
+            background-color: #fafaf9;
+            color: #3f3f46;
         }
+
+        /* Navigation */
+        .nav-link {
+            position: relative;
+            transition: color 0.3s;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #0d9488;
+            transition: width 0.3s;
+        }
+        .nav-link:hover::after { width: 100%; }
+        .nav-link:hover { color: #0d9488; }
+
+        /* Hero gradient */
+        .hero-gradient {
+            background: linear-gradient(135deg, #0f766e 0%, #0d9488 30%, #14b8a6 60%, #5eead4 100%);
+        }
+
+        /* Tabs */
         .tab-active {
             border-color: #0d9488;
             color: #0f766e;
             background-color: #ccfbf1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.15);
         }
         .tab-inactive {
             border-color: transparent;
-            color: #52525b;
+            color: #71717a;
         }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button:hover {
+            color: #0f766e;
+            background-color: #f0fdfa;
+        }
+
+        /* Cards */
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+        }
+
+        /* Fade in animation */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scroll reveal */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Chart containers */
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 300px;
-            max-height: 400px;
+            max-width: 550px;
+            margin: 0 auto;
+            height: 320px;
         }
         @media (min-width: 768px) {
-            .chart-container {
-                height: 400px;
-            }
+            .chart-container { height: 400px; }
+        }
+        .chart-container-bar {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin: 0 auto;
+            height: 300px;
+        }
+        @media (min-width: 768px) {
+            .chart-container-bar { height: 380px; }
+        }
+
+        /* Timeline */
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -29px;
+            top: 8px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #0d9488;
+            border: 3px solid #ccfbf1;
+        }
+
+        /* Stat counter */
+        .stat-number {
+            background: linear-gradient(135deg, #0f766e, #14b8a6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Formation badge */
+        .formation-badge {
+            background: linear-gradient(135deg, #f0fdfa, #ccfbf1);
+            border-left: 4px solid #0d9488;
         }
     </style>
 </head>
 <body class="antialiased">
 
-    <div class="container mx-auto p-4 md:p-8 max-w-5xl">
-
-        <header class="text-center mb-10">
-            <h1 class="text-3xl md:text-4xl font-bold text-teal-800 mb-2">Mon Parcours Avenir</h1>
-            <p class="text-lg text-zinc-600">Découverte des métiers de l'hôtellerie-restauration</p>
-        </header>
-
-        <main>
-            <section id="intro" class="bg-white p-6 rounded-xl shadow-md mb-10">
-                <p class="text-center text-zinc-700">Bienvenue ! Cette page interactive présente trois métiers passionnants du monde de la restauration, un secteur dynamique et riche en opportunités. Explorez chaque rôle pour découvrir ses missions, les qualités requises et les possibilités d'évolution de carrière.</p>
-            </section>
-
-            <section id="explorer">
-                <div class="mb-8">
-                    <nav class="flex justify-center border-b border-zinc-200" aria-label="Tabs">
-                        <button id="tab-maitre" class="tab-button text-sm md:text-base font-semibold py-4 px-3 md:px-6 border-b-2 transition-colors duration-300 ease-in-out">Maître d'Hôtel</button>
-                        <button id="tab-cuisinier" class="tab-button text-sm md:text-base font-semibold py-4 px-3 md:px-6 border-b-2 transition-colors duration-300 ease-in-out">Cuisinier</button>
-                        <button id="tab-serveur" class="tab-button text-sm md:text-base font-semibold py-4 px-3 md:px-6 border-b-2 transition-colors duration-300 ease-in-out">Serveur</button>
-                    </nav>
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-zinc-100 shadow-sm">
+        <div class="container mx-auto px-4 md:px-8 max-w-6xl">
+            <div class="flex items-center justify-between h-16">
+                <a href="#" class="text-xl font-bold text-teal-700">Parcours Avenir</a>
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="#metiers" class="nav-link text-sm font-medium text-zinc-600">Métiers</a>
+                    <a href="#journee" class="nav-link text-sm font-medium text-zinc-600">Journée Type</a>
+                    <a href="#formations" class="nav-link text-sm font-medium text-zinc-600">Formations</a>
+                    <a href="#comparaison" class="nav-link text-sm font-medium text-zinc-600">Comparaison</a>
+                    <a href="#salaires" class="nav-link text-sm font-medium text-zinc-600">Salaires</a>
                 </div>
+                <!-- Mobile menu button -->
+                <button id="mobile-menu-btn" class="md:hidden p-2 rounded-lg hover:bg-zinc-100">
+                    <span class="block w-5 h-0.5 bg-zinc-600 mb-1"></span>
+                    <span class="block w-5 h-0.5 bg-zinc-600 mb-1"></span>
+                    <span class="block w-5 h-0.5 bg-zinc-600"></span>
+                </button>
+            </div>
+            <!-- Mobile menu -->
+            <div id="mobile-menu" class="md:hidden hidden pb-4">
+                <a href="#metiers" class="block py-2 text-sm text-zinc-600 hover:text-teal-700">Métiers</a>
+                <a href="#journee" class="block py-2 text-sm text-zinc-600 hover:text-teal-700">Journée Type</a>
+                <a href="#formations" class="block py-2 text-sm text-zinc-600 hover:text-teal-700">Formations</a>
+                <a href="#comparaison" class="block py-2 text-sm text-zinc-600 hover:text-teal-700">Comparaison</a>
+                <a href="#salaires" class="block py-2 text-sm text-zinc-600 hover:text-teal-700">Salaires</a>
+            </div>
+        </div>
+    </nav>
 
-                <div id="content-panels">
-                    <div id="panel-maitre" class="content-panel">
-                        <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg transition-opacity duration-500 ease-in-out">
-                            <h2 class="text-2xl font-bold text-teal-700 mb-4">Le Maître d'Hôtel</h2>
-                            <p class="mb-6 text-zinc-600">Le chef d'orchestre de la salle, il veille à ce que l'expérience de chaque client soit inoubliable, de l'accueil jusqu'au départ.</p>
-                            <div class="grid md:grid-cols-3 gap-6">
-                                <div class="bg-teal-50 p-4 rounded-lg">
-                                    <h3 class="font-bold text-lg mb-2 text-teal-800 flex items-center">🎯 Missions</h3>
-                                    <ul class="list-disc list-inside text-zinc-700 space-y-1">
-                                        <li>Accueillir et placer les clients</li>
-                                        <li>Prendre les commandes</li>
-                                        <li>Superviser le service en salle</li>
-                                        <li>Gérer les réservations et le plan de salle</li>
-                                        <li>Former et manager les équipes</li>
-                                    </ul>
-                                </div>
-                                <div class="bg-teal-50 p-4 rounded-lg">
-                                    <h3 class="font-bold text-lg mb-2 text-teal-800 flex items-center">⭐ Qualités</h3>
-                                    <ul class="list-disc list-inside text-zinc-700 space-y-1">
-                                        <li>Excellent relationnel</li>
-                                        <li>Organisation et rigueur</li>
-                                        <li>Diplomatie et calme</li>
-                                        <li>Présentation irréprochable</li>
-                                        <li>Leadership</li>
-                                    </ul>
-                                </div>
-                                <div class="bg-teal-50 p-4 rounded-lg">
-                                    <h3 class="font-bold text-lg mb-2 text-teal-800 flex items-center">🚀 Évolution</h3>
-                                    <ul class="list-disc list-inside text-zinc-700 space-y-1">
-                                        <li>Directeur de restaurant</li>
-                                        <li>Responsable de la restauration</li>
-                                        <li>Ouvrir son propre établissement</li>
-                                    </ul>
-                                </div>
+    <!-- Hero Section -->
+    <header class="hero-gradient text-white py-16 md:py-24 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-10 left-10 w-72 h-72 bg-white rounded-full blur-3xl"></div>
+            <div class="absolute bottom-10 right-10 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+        </div>
+        <div class="container mx-auto px-4 md:px-8 max-w-6xl relative z-10">
+            <div class="text-center">
+                <p class="text-teal-200 text-sm font-medium tracking-widest uppercase mb-4">Projet Parcours Avenir</p>
+                <h1 class="text-4xl md:text-6xl font-extrabold mb-6 leading-tight">
+                    Les Métiers de<br>l'Hôtellerie-Restauration
+                </h1>
+                <p class="text-lg md:text-xl text-teal-100 max-w-2xl mx-auto mb-10">
+                    Découvrez trois métiers passionnants d'un secteur dynamique qui recrute et offre de belles opportunités de carrière.
+                </p>
+                <a href="#metiers" class="inline-block bg-white text-teal-700 font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl hover:bg-teal-50 transition-all duration-300">
+                    Explorer les métiers
+                </a>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-3 gap-4 mt-14 max-w-3xl mx-auto">
+                <div class="text-center bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                    <p class="text-3xl md:text-4xl font-bold">1M+</p>
+                    <p class="text-teal-200 text-sm mt-1">Emplois en France</p>
+                </div>
+                <div class="text-center bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                    <p class="text-3xl md:text-4xl font-bold">200k</p>
+                    <p class="text-teal-200 text-sm mt-1">Postes ouverts/an</p>
+                </div>
+                <div class="text-center bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                    <p class="text-3xl md:text-4xl font-bold">4e</p>
+                    <p class="text-teal-200 text-sm mt-1">Secteur employeur</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 md:px-8 max-w-6xl">
+
+        <!-- Introduction -->
+        <section class="py-12 reveal">
+            <div class="bg-white p-8 rounded-2xl shadow-md border border-zinc-100 text-center max-w-3xl mx-auto">
+                <p class="text-zinc-600 leading-relaxed text-lg">
+                    Le secteur de l'hôtellerie-restauration est le <strong class="text-teal-700">4e secteur employeur</strong> en France.
+                    Il offre des métiers variés, accessibles à tous les niveaux de formation, avec de vraies possibilités d'évolution rapide.
+                    Cette page interactive présente trois métiers emblématiques de ce secteur.
+                </p>
+            </div>
+        </section>
+
+        <!-- Métiers (Tabs) -->
+        <section id="metiers" class="py-8 reveal">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl md:text-4xl font-bold text-zinc-800 mb-3">Découvrir les Métiers</h2>
+                <p class="text-zinc-500 max-w-xl mx-auto">Cliquez sur un métier pour explorer ses missions, qualités requises et perspectives d'évolution.</p>
+            </div>
+
+            <nav class="flex justify-center mb-8 border-b border-zinc-200" aria-label="Tabs">
+                <button id="tab-maitre" class="tab-button text-sm md:text-base font-semibold py-4 px-4 md:px-8 border-b-2 rounded-t-lg">
+                    <span class="text-lg mr-1">👔</span> Maître d'Hôtel
+                </button>
+                <button id="tab-cuisinier" class="tab-button text-sm md:text-base font-semibold py-4 px-4 md:px-8 border-b-2 rounded-t-lg">
+                    <span class="text-lg mr-1">👨‍🍳</span> Cuisinier
+                </button>
+                <button id="tab-serveur" class="tab-button text-sm md:text-base font-semibold py-4 px-4 md:px-8 border-b-2 rounded-t-lg">
+                    <span class="text-lg mr-1">🍽️</span> Serveur
+                </button>
+            </nav>
+
+            <div id="content-panels">
+                <!-- Maître d'Hôtel -->
+                <div id="panel-maitre" class="content-panel fade-in">
+                    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-zinc-100">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="text-3xl">👔</span>
+                            <h2 class="text-2xl font-bold text-teal-700">Le Maître d'Hôtel</h2>
+                        </div>
+                        <p class="mb-6 text-zinc-500 ml-12">Le chef d'orchestre de la salle, il veille à ce que l'expérience de chaque client soit inoubliable, de l'accueil au départ.</p>
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <div class="card-hover bg-gradient-to-br from-teal-50 to-emerald-50 p-5 rounded-xl border border-teal-100">
+                                <h3 class="font-bold text-lg mb-3 text-teal-800">🎯 Missions</h3>
+                                <ul class="text-zinc-700 space-y-2 text-sm">
+                                    <li class="flex items-start gap-2"><span class="text-teal-500 mt-0.5">&#9679;</span> Accueillir et placer les clients</li>
+                                    <li class="flex items-start gap-2"><span class="text-teal-500 mt-0.5">&#9679;</span> Prendre les commandes</li>
+                                    <li class="flex items-start gap-2"><span class="text-teal-500 mt-0.5">&#9679;</span> Superviser le service en salle</li>
+                                    <li class="flex items-start gap-2"><span class="text-teal-500 mt-0.5">&#9679;</span> Gérer les réservations et le plan de salle</li>
+                                    <li class="flex items-start gap-2"><span class="text-teal-500 mt-0.5">&#9679;</span> Former et manager les équipes</li>
+                                </ul>
+                            </div>
+                            <div class="card-hover bg-gradient-to-br from-teal-50 to-emerald-50 p-5 rounded-xl border border-teal-100">
+                                <h3 class="font-bold text-lg mb-3 text-teal-800">⭐ Qualités</h3>
+                                <ul class="text-zinc-700 space-y-2 text-sm">
+                                    <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9679;</span> Excellent relationnel</li>
+                                    <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9679;</span> Organisation et rigueur</li>
+                                    <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9679;</span> Diplomatie et calme</li>
+                                    <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9679;</span> Présentation irréprochable</li>
+                                    <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9679;</span> Leadership</li>
+                                </ul>
+                            </div>
+                            <div class="card-hover bg-gradient-to-br from-teal-50 to-emerald-50 p-5 rounded-xl border border-teal-100">
+                                <h3 class="font-bold text-lg mb-3 text-teal-800">🚀 Évolution</h3>
+                                <ul class="text-zinc-700 space-y-2 text-sm">
+                                    <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">&#9679;</span> Directeur de restaurant</li>
+                                    <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">&#9679;</span> Responsable de la restauration</li>
+                                    <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">&#9679;</span> Ouvrir son propre établissement</li>
+                                    <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">&#9679;</span> Consultant en hôtellerie</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div id="panel-cuisinier" class="content-panel hidden">
-                        <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg transition-opacity duration-500 ease-in-out">
-                            <h2 class="text-2xl font-bold text-teal-700 mb-4">Le Cuisinier</h2>
-                            <p class="mb-6 text-zinc-600">L'artiste des saveurs qui transforme les produits bruts en plats délicieux et créatifs, au cœur de l'effervescence de la cuisine.</p>
-                            <div class="grid md:grid-cols-3 gap-6">
-                                <div class="bg-teal-50 p-4 rounded-lg">
-                                    <h3 class="font-bold text-lg mb-2 text-teal-800 flex items-center">🎯 Missions</h3>
-                                    <ul class="list-disc list-inside text-zinc-700 space-y-1">
-                                        <li>Préparer les ingrédients</li>
-                                        <li>Réaliser les cuissons et les plats</li>
-                                        <li>Dresser les assiettes</li>
-                                        <li>Gérer les stocks de marchandises</li>
-                                        <li>Respecter les normes d'hygiène</li>
-                                    </ul>
-                                </div>
-                                <div class="bg-teal-50 p-4 rounded-lg">
-                                    <h3 class="font-bold text-lg mb-2 text-teal-800 flex items-center">⭐ Qualités</h3>
-                                    <ul class="list-disc list-inside text-zinc-700 space-y-1">
-                                        <li>Créativité et curiosité</li>
-                                        <li>Rigueur et précision</li>
-                                        <li>Résistance au stress et physique</li>
-                                        <li>Esprit d'équipe</li>
-                                        <li>Rapidité d'exécution</li>
-                                    </ul>
-                                </div>
-                                <div class="bg-teal-50 p-4 rounded-lg">
-                                    <h3 class="font-bold text-lg mb-2 text-teal-800 flex items-center">🚀 Évolution</h3>
-                                    <ul class="list-disc list-inside text-zinc-700 space-y-1">
-                                        <li>Chef de partie</li>
-                                        <li>Second de cuisine (Sous-chef)</li>
-                                        <li>Chef de cuisine</li>
-                                        <li>Ouvrir son restaurant</li>
-                                    </ul>
-                                </div>
-                            </div>
+                <!-- Cuisinier -->
+                <div id="panel-cuisinier" class="content-panel hidden">
+                    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-zinc-100 fade-in">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="text-3xl">👨‍🍳</span>
+                            <h2 class="text-2xl font-bold text-teal-700">Le Cuisinier</h2>
                         </div>
-                    </div>
-
-                    <div id="panel-serveur" class="content-panel hidden">
-                        <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg transition-opacity duration-500 ease-in-out">
-                            <h2 class="text-2xl font-bold text-teal-700 mb-4">Le Serveur</h2>
-                            <p class="mb-6 text-zinc-600">Le lien essentiel entre la cuisine et le client. Il assure un service fluide et agréable, et incarne l'ambiance du restaurant.</p>
-                            <div class="grid md:grid-cols-3 gap-6">
-                                <div class="bg-teal-50 p-4 rounded-lg">
-                                    <h3 class="font-bold text-lg mb-2 text-teal-800 flex items-center">🎯 Missions</h3>
-                                    <ul class="list-disc list-inside text-zinc-700 space-y-1">
-                                        <li>Mettre en place la salle</li>
-                                        <li>Prendre les commandes</li>
-                                        <li>Servir les plats et boissons</li>
-                                        <li>Débarrasser et nettoyer</li>
-                                        <li>Conseiller les clients</li>
-                                    </ul>
-                                </div>
-                               <div class="bg-teal-50 p-4 rounded-lg">
-                                    <h3 class="font-bold text-lg mb-2 text-teal-800 flex items-center">⭐ Qualités</h3>
-                                    <ul class="list-disc list-inside text-zinc-700 space-y-1">
-                                        <li>Sens du service et amabilité</li>
-                                        <li>Dynamisme et rapidité</li>
-                                        <li>Bonne mémoire</li>
-                                        <li>Discrétion et professionnalisme</li>
-                                        <li>Bonne présentation</li>
-                                    </ul>
-                                </div>
-                                <div class="bg-teal-50 p-4 rounded-lg">
-                                    <h3 class="font-bold text-lg mb-2 text-teal-800 flex items-center">🚀 Évolution</h3>
-                                    <ul class="list-disc list-inside text-zinc-700 space-y-1">
-                                        <li>Chef de rang</li>
-                                        <li>Maître d'hôtel</li>
-                                        <li>Directeur de restaurant</li>
-                                    </ul>
-                                </div>
+                        <p class="mb-6 text-zinc-500 ml-12">L'artiste des saveurs qui transforme les produits bruts en plats délicieux et créatifs, au coeur de l'effervescence de la cuisine.</p>
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <div class="card-hover bg-gradient-to-br from-orange-50 to-amber-50 p-5 rounded-xl border border-orange-100">
+                                <h3 class="font-bold text-lg mb-3 text-orange-800">🎯 Missions</h3>
+                                <ul class="text-zinc-700 space-y-2 text-sm">
+                                    <li class="flex items-start gap-2"><span class="text-orange-500 mt-0.5">&#9679;</span> Préparer les ingrédients</li>
+                                    <li class="flex items-start gap-2"><span class="text-orange-500 mt-0.5">&#9679;</span> Réaliser les cuissons et les plats</li>
+                                    <li class="flex items-start gap-2"><span class="text-orange-500 mt-0.5">&#9679;</span> Dresser les assiettes avec soin</li>
+                                    <li class="flex items-start gap-2"><span class="text-orange-500 mt-0.5">&#9679;</span> Gérer les stocks de marchandises</li>
+                                    <li class="flex items-start gap-2"><span class="text-orange-500 mt-0.5">&#9679;</span> Respecter les normes d'hygiène (HACCP)</li>
+                                </ul>
+                            </div>
+                            <div class="card-hover bg-gradient-to-br from-orange-50 to-amber-50 p-5 rounded-xl border border-orange-100">
+                                <h3 class="font-bold text-lg mb-3 text-orange-800">⭐ Qualités</h3>
+                                <ul class="text-zinc-700 space-y-2 text-sm">
+                                    <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9679;</span> Créativité et curiosité</li>
+                                    <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9679;</span> Rigueur et précision</li>
+                                    <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9679;</span> Résistance au stress et physique</li>
+                                    <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9679;</span> Esprit d'équipe</li>
+                                    <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9679;</span> Rapidité d'exécution</li>
+                                </ul>
+                            </div>
+                            <div class="card-hover bg-gradient-to-br from-orange-50 to-amber-50 p-5 rounded-xl border border-orange-100">
+                                <h3 class="font-bold text-lg mb-3 text-orange-800">🚀 Évolution</h3>
+                                <ul class="text-zinc-700 space-y-2 text-sm">
+                                    <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">&#9679;</span> Chef de partie</li>
+                                    <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">&#9679;</span> Second de cuisine (Sous-chef)</li>
+                                    <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">&#9679;</span> Chef de cuisine</li>
+                                    <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">&#9679;</span> Ouvrir son propre restaurant</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
                 </div>
-            </section>
-            
-            <section id="comparison" class="mt-12 md:mt-20">
-                 <div class="text-center mb-10">
-                    <h2 class="text-2xl md:text-3xl font-bold text-teal-800 mb-2">Comparaison des Métiers</h2>
-                    <p class="text-zinc-600">Ce graphique interactif compare les qualités clés pour chaque rôle. Survolez les points pour en savoir plus !</p>
-                </div>
-                <div class="bg-white p-4 sm:p-6 md:p-8 rounded-xl shadow-lg">
-                    <div class="chart-container">
-                        <canvas id="qualitiesChart"></canvas>
+
+                <!-- Serveur -->
+                <div id="panel-serveur" class="content-panel hidden">
+                    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-zinc-100 fade-in">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="text-3xl">🍽️</span>
+                            <h2 class="text-2xl font-bold text-teal-700">Le Serveur</h2>
+                        </div>
+                        <p class="mb-6 text-zinc-500 ml-12">Le lien essentiel entre la cuisine et le client. Il assure un service fluide et agréable, et incarne l'ambiance du restaurant.</p>
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <div class="card-hover bg-gradient-to-br from-indigo-50 to-violet-50 p-5 rounded-xl border border-indigo-100">
+                                <h3 class="font-bold text-lg mb-3 text-indigo-800">🎯 Missions</h3>
+                                <ul class="text-zinc-700 space-y-2 text-sm">
+                                    <li class="flex items-start gap-2"><span class="text-indigo-500 mt-0.5">&#9679;</span> Mettre en place la salle</li>
+                                    <li class="flex items-start gap-2"><span class="text-indigo-500 mt-0.5">&#9679;</span> Prendre les commandes</li>
+                                    <li class="flex items-start gap-2"><span class="text-indigo-500 mt-0.5">&#9679;</span> Servir les plats et boissons</li>
+                                    <li class="flex items-start gap-2"><span class="text-indigo-500 mt-0.5">&#9679;</span> Débarrasser et nettoyer</li>
+                                    <li class="flex items-start gap-2"><span class="text-indigo-500 mt-0.5">&#9679;</span> Conseiller les clients sur le menu</li>
+                                </ul>
+                            </div>
+                            <div class="card-hover bg-gradient-to-br from-indigo-50 to-violet-50 p-5 rounded-xl border border-indigo-100">
+                                <h3 class="font-bold text-lg mb-3 text-indigo-800">⭐ Qualités</h3>
+                                <ul class="text-zinc-700 space-y-2 text-sm">
+                                    <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9679;</span> Sens du service et amabilité</li>
+                                    <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9679;</span> Dynamisme et rapidité</li>
+                                    <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9679;</span> Bonne mémoire</li>
+                                    <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9679;</span> Discrétion et professionnalisme</li>
+                                    <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9679;</span> Bonne présentation</li>
+                                </ul>
+                            </div>
+                            <div class="card-hover bg-gradient-to-br from-indigo-50 to-violet-50 p-5 rounded-xl border border-indigo-100">
+                                <h3 class="font-bold text-lg mb-3 text-indigo-800">🚀 Évolution</h3>
+                                <ul class="text-zinc-700 space-y-2 text-sm">
+                                    <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">&#9679;</span> Chef de rang</li>
+                                    <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">&#9679;</span> Maître d'hôtel</li>
+                                    <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">&#9679;</span> Directeur de restaurant</li>
+                                    <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">&#9679;</span> Sommelier (spécialisation)</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </section>
+            </div>
+        </section>
 
-        </main>
+        <!-- Journée Type -->
+        <section id="journee" class="py-12 reveal">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl md:text-4xl font-bold text-zinc-800 mb-3">Une Journée Type</h2>
+                <p class="text-zinc-500 max-w-xl mx-auto">Voici à quoi ressemble une journée typique pour chaque métier.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Maître d'Hôtel -->
+                <div class="card-hover bg-white rounded-2xl shadow-md border border-zinc-100 p-6">
+                    <div class="flex items-center gap-2 mb-5">
+                        <span class="text-2xl">👔</span>
+                        <h3 class="font-bold text-lg text-teal-700">Maître d'Hôtel</h3>
+                    </div>
+                    <div class="relative border-l-2 border-teal-200 ml-3 pl-6 space-y-5">
+                        <div class="timeline-item relative">
+                            <p class="text-xs font-semibold text-teal-600">09h00</p>
+                            <p class="text-sm text-zinc-600">Vérification de la salle et briefing équipe</p>
+                        </div>
+                        <div class="timeline-item relative">
+                            <p class="text-xs font-semibold text-teal-600">10h30</p>
+                            <p class="text-sm text-zinc-600">Gestion des réservations du jour</p>
+                        </div>
+                        <div class="timeline-item relative">
+                            <p class="text-xs font-semibold text-teal-600">12h00</p>
+                            <p class="text-sm text-zinc-600">Accueil des clients, supervision du service</p>
+                        </div>
+                        <div class="timeline-item relative">
+                            <p class="text-xs font-semibold text-teal-600">15h00</p>
+                            <p class="text-sm text-zinc-600">Débriefing et préparation du service du soir</p>
+                        </div>
+                        <div class="timeline-item relative">
+                            <p class="text-xs font-semibold text-teal-600">19h00</p>
+                            <p class="text-sm text-zinc-600">Service du soir et accueil VIP</p>
+                        </div>
+                    </div>
+                </div>
 
-        <footer class="text-center mt-12 text-zinc-500 text-sm">
-            <p>&copy; 2024 Mon Parcours Avenir. Un projet pour explorer les opportunités de carrière.</p>
-        </footer>
+                <!-- Cuisinier -->
+                <div class="card-hover bg-white rounded-2xl shadow-md border border-zinc-100 p-6">
+                    <div class="flex items-center gap-2 mb-5">
+                        <span class="text-2xl">👨‍🍳</span>
+                        <h3 class="font-bold text-lg text-orange-700">Cuisinier</h3>
+                    </div>
+                    <div class="relative border-l-2 border-orange-200 ml-3 pl-6 space-y-5">
+                        <div class="timeline-item relative" style="--tw-border-opacity:1;">
+                            <p class="text-xs font-semibold text-orange-600">07h00</p>
+                            <p class="text-sm text-zinc-600">Réception des marchandises et mise en place</p>
+                        </div>
+                        <div class="timeline-item relative">
+                            <p class="text-xs font-semibold text-orange-600">09h00</p>
+                            <p class="text-sm text-zinc-600">Préparation des sauces et des bases</p>
+                        </div>
+                        <div class="timeline-item relative">
+                            <p class="text-xs font-semibold text-orange-600">11h30</p>
+                            <p class="text-sm text-zinc-600">Coup de feu ! Service du midi intense</p>
+                        </div>
+                        <div class="timeline-item relative">
+                            <p class="text-xs font-semibold text-orange-600">14h30</p>
+                            <p class="text-sm text-zinc-600">Nettoyage, inventaire et pause</p>
+                        </div>
+                        <div class="timeline-item relative">
+                            <p class="text-xs font-semibold text-orange-600">18h00</p>
+                            <p class="text-sm text-zinc-600">Mise en place et service du soir</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Serveur -->
+                <div class="card-hover bg-white rounded-2xl shadow-md border border-zinc-100 p-6">
+                    <div class="flex items-center gap-2 mb-5">
+                        <span class="text-2xl">🍽️</span>
+                        <h3 class="font-bold text-lg text-indigo-700">Serveur</h3>
+                    </div>
+                    <div class="relative border-l-2 border-indigo-200 ml-3 pl-6 space-y-5">
+                        <div class="timeline-item relative">
+                            <p class="text-xs font-semibold text-indigo-600">10h00</p>
+                            <p class="text-sm text-zinc-600">Mise en place des tables et couverts</p>
+                        </div>
+                        <div class="timeline-item relative">
+                            <p class="text-xs font-semibold text-indigo-600">11h00</p>
+                            <p class="text-sm text-zinc-600">Briefing sur le menu et les suggestions</p>
+                        </div>
+                        <div class="timeline-item relative">
+                            <p class="text-xs font-semibold text-indigo-600">12h00</p>
+                            <p class="text-sm text-zinc-600">Service du midi : prise de commandes</p>
+                        </div>
+                        <div class="timeline-item relative">
+                            <p class="text-xs font-semibold text-indigo-600">15h00</p>
+                            <p class="text-sm text-zinc-600">Rangement de la salle et pause</p>
+                        </div>
+                        <div class="timeline-item relative">
+                            <p class="text-xs font-semibold text-indigo-600">19h00</p>
+                            <p class="text-sm text-zinc-600">Service du soir et encaissements</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Formations -->
+        <section id="formations" class="py-12 reveal">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl md:text-4xl font-bold text-zinc-800 mb-3">Formations & Diplômes</h2>
+                <p class="text-zinc-500 max-w-xl mx-auto">Les parcours de formation pour accéder à ces métiers, du CAP au Bac+5.</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                <div class="formation-badge card-hover bg-white p-6 rounded-xl shadow-sm">
+                    <h3 class="font-bold text-teal-800 text-lg mb-2">CAP Cuisine / Restaurant</h3>
+                    <p class="text-sm text-zinc-600 mb-2">Diplôme de base (2 ans après la 3e). Formation pratique intensive avec stages en entreprise.</p>
+                    <span class="inline-block text-xs font-medium bg-teal-100 text-teal-700 px-3 py-1 rounded-full">Niveau 3 - Dès la 3e</span>
+                </div>
+                <div class="formation-badge card-hover bg-white p-6 rounded-xl shadow-sm">
+                    <h3 class="font-bold text-teal-800 text-lg mb-2">Bac Pro Cuisine / Service</h3>
+                    <p class="text-sm text-zinc-600 mb-2">Formation complète (3 ans). Permet d'acquérir des compétences avancées en gestion et management.</p>
+                    <span class="inline-block text-xs font-medium bg-teal-100 text-teal-700 px-3 py-1 rounded-full">Niveau 4 - Dès la 3e</span>
+                </div>
+                <div class="formation-badge card-hover bg-white p-6 rounded-xl shadow-sm">
+                    <h3 class="font-bold text-teal-800 text-lg mb-2">BTS Hôtellerie-Restauration</h3>
+                    <p class="text-sm text-zinc-600 mb-2">Bac+2 avec spécialisation en management ou art culinaire. Ouvre vers des postes de responsabilité.</p>
+                    <span class="inline-block text-xs font-medium bg-blue-100 text-blue-700 px-3 py-1 rounded-full">Niveau 5 - Après le Bac</span>
+                </div>
+                <div class="formation-badge card-hover bg-white p-6 rounded-xl shadow-sm">
+                    <h3 class="font-bold text-teal-800 text-lg mb-2">Bachelor / Licence Pro</h3>
+                    <p class="text-sm text-zinc-600 mb-2">Bac+3 en management hôtelier. Pour des postes de direction et de gestion d'établissement.</p>
+                    <span class="inline-block text-xs font-medium bg-purple-100 text-purple-700 px-3 py-1 rounded-full">Niveau 6 - Bac+3</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparaison Radar Chart -->
+        <section id="comparaison" class="py-12 reveal">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl md:text-4xl font-bold text-zinc-800 mb-3">Comparaison des Qualités</h2>
+                <p class="text-zinc-500 max-w-xl mx-auto">Ce graphique radar compare les qualités clés requises pour chaque métier. Survolez les points pour en savoir plus.</p>
+            </div>
+            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-zinc-100">
+                <div class="chart-container">
+                    <canvas id="qualitiesChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Salaires -->
+        <section id="salaires" class="py-12 reveal">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl md:text-4xl font-bold text-zinc-800 mb-3">Les Salaires</h2>
+                <p class="text-zinc-500 max-w-xl mx-auto">Salaires mensuels nets moyens en France (source : enquêtes sectorielles 2024).</p>
+            </div>
+            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-zinc-100">
+                <div class="chart-container-bar">
+                    <canvas id="salaryChart"></canvas>
+                </div>
+            </div>
+            <div class="grid md:grid-cols-3 gap-6 mt-8">
+                <div class="card-hover bg-white rounded-xl p-5 shadow-sm border border-zinc-100 text-center">
+                    <p class="text-sm text-zinc-500 mb-1">Serveur (débutant)</p>
+                    <p class="text-3xl font-bold stat-number">1 550 &euro;</p>
+                    <p class="text-xs text-zinc-400 mt-1">+ pourboires</p>
+                </div>
+                <div class="card-hover bg-white rounded-xl p-5 shadow-sm border border-zinc-100 text-center">
+                    <p class="text-sm text-zinc-500 mb-1">Cuisinier (confirmé)</p>
+                    <p class="text-3xl font-bold stat-number">2 200 &euro;</p>
+                    <p class="text-xs text-zinc-400 mt-1">net/mois</p>
+                </div>
+                <div class="card-hover bg-white rounded-xl p-5 shadow-sm border border-zinc-100 text-center">
+                    <p class="text-sm text-zinc-500 mb-1">Maître d'Hôtel (expérimenté)</p>
+                    <p class="text-3xl font-bold stat-number">3 000 &euro;</p>
+                    <p class="text-xs text-zinc-400 mt-1">net/mois</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conclusion -->
+        <section class="py-12 reveal">
+            <div class="hero-gradient rounded-2xl p-8 md:p-12 text-white text-center">
+                <h2 class="text-2xl md:text-3xl font-bold mb-4">Un secteur qui recrute !</h2>
+                <p class="text-teal-100 max-w-2xl mx-auto mb-6 leading-relaxed">
+                    L'hôtellerie-restauration offre des carrières passionnantes et accessibles.
+                    Que vous soyez créatif, sociable ou organisé, il y a un métier fait pour vous.
+                    N'hésitez pas à faire des stages pour découvrir ces métiers de l'intérieur !
+                </p>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <a href="https://www.onisep.fr/ressources/univers-metier/metiers/cuisinier-cuisiniere" target="_blank" rel="noopener"
+                       class="bg-white text-teal-700 font-semibold px-6 py-2.5 rounded-full text-sm hover:bg-teal-50 transition-colors shadow">
+                        En savoir plus sur Onisep
+                    </a>
+                    <a href="https://www.letudiant.fr/metiers/secteur/hotellerie-restauration.html" target="_blank" rel="noopener"
+                       class="border-2 border-white text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:bg-white/10 transition-colors">
+                        Voir sur L'Étudiant
+                    </a>
+                </div>
+            </div>
+        </section>
 
     </div>
 
+    <!-- Footer -->
+    <footer class="bg-zinc-800 text-zinc-400 py-8 mt-12">
+        <div class="container mx-auto px-4 max-w-6xl text-center">
+            <p class="text-sm">&copy; 2025 Mon Parcours Avenir - Projet de découverte des métiers</p>
+            <p class="text-xs mt-2 text-zinc-500">Réalisé dans le cadre du Parcours Avenir | Hôtellerie-Restauration</p>
+        </div>
+    </footer>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Mobile menu toggle
+            const menuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            menuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            // Close mobile menu on link click
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => mobileMenu.classList.add('hidden'));
+            });
+
+            // Tab system
             const tabs = {
                 maitre: document.getElementById('tab-maitre'),
                 cuisinier: document.getElementById('tab-cuisinier'),
                 serveur: document.getElementById('tab-serveur'),
             };
-
             const panels = {
                 maitre: document.getElementById('panel-maitre'),
                 cuisinier: document.getElementById('panel-cuisinier'),
                 serveur: document.getElementById('panel-serveur'),
             };
-
             const allTabs = Object.values(tabs);
             const allPanels = Object.values(panels);
 
@@ -230,29 +608,46 @@
                 });
                 tabs[tabName].classList.add('tab-active');
                 tabs[tabName].classList.remove('tab-inactive');
-                
-                allPanels.forEach(panel => {
-                    panel.classList.add('hidden');
-                });
+
+                allPanels.forEach(panel => panel.classList.add('hidden'));
                 panels[tabName].classList.remove('hidden');
+
+                // Trigger fade-in animation
+                const innerCard = panels[tabName].querySelector('.bg-white, .fade-in');
+                if (innerCard) {
+                    innerCard.classList.remove('fade-in');
+                    void innerCard.offsetWidth; // reflow
+                    innerCard.classList.add('fade-in');
+                }
             }
 
             tabs.maitre.addEventListener('click', () => activateTab('maitre'));
             tabs.cuisinier.addEventListener('click', () => activateTab('cuisinier'));
             tabs.serveur.addEventListener('click', () => activateTab('serveur'));
-
             activateTab('maitre');
 
+            // Scroll reveal animation
+            const revealElements = document.querySelectorAll('.reveal');
+            const revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+            revealElements.forEach(el => revealObserver.observe(el));
+
+            // Radar Chart - Qualités
             const ctx = document.getElementById('qualitiesChart').getContext('2d');
-            const qualitiesChart = new Chart(ctx, {
+            new Chart(ctx, {
                 type: 'radar',
                 data: {
-                    labels: ['Contact Humain', 'Travail d\'Équipe', 'Créativité', 'Organisation', 'Résistance au Stress'],
+                    labels: ['Contact Humain', 'Travail d\'Équipe', 'Créativité', 'Organisation', 'Résistance au Stress', 'Rapidité'],
                     datasets: [{
                         label: 'Maître d\'Hôtel',
-                        data: [5, 4, 2, 5, 4],
+                        data: [5, 4, 2, 5, 4, 3],
                         fill: true,
-                        backgroundColor: 'rgba(13, 148, 136, 0.2)',
+                        backgroundColor: 'rgba(13, 148, 136, 0.15)',
                         borderColor: 'rgb(13, 148, 136)',
                         pointBackgroundColor: 'rgb(13, 148, 136)',
                         pointBorderColor: '#fff',
@@ -260,20 +655,19 @@
                         pointHoverBorderColor: 'rgb(13, 148, 136)'
                     }, {
                         label: 'Cuisinier',
-                        data: [2, 5, 5, 4, 5],
+                        data: [2, 5, 5, 4, 5, 5],
                         fill: true,
-                        backgroundColor: 'rgba(249, 115, 22, 0.2)',
+                        backgroundColor: 'rgba(249, 115, 22, 0.15)',
                         borderColor: 'rgb(249, 115, 22)',
                         pointBackgroundColor: 'rgb(249, 115, 22)',
                         pointBorderColor: '#fff',
                         pointHoverBackgroundColor: '#fff',
                         pointHoverBorderColor: 'rgb(249, 115, 22)'
-                    },
-                    {
+                    }, {
                         label: 'Serveur',
-                        data: [5, 4, 1, 3, 3],
+                        data: [5, 4, 1, 3, 3, 5],
                         fill: true,
-                        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                        backgroundColor: 'rgba(99, 102, 241, 0.15)',
                         borderColor: 'rgb(99, 102, 241)',
                         pointBackgroundColor: 'rgb(99, 102, 241)',
                         pointBorderColor: '#fff',
@@ -284,43 +678,79 @@
                 options: {
                     maintainAspectRatio: false,
                     responsive: true,
-                    elements: {
-                        line: {
-                            borderWidth: 3
-                        }
-                    },
+                    elements: { line: { borderWidth: 2 } },
                     scales: {
                         r: {
-                            angleLines: {
-                                display: false
-                            },
+                            angleLines: { color: 'rgba(0,0,0,0.05)' },
+                            grid: { color: 'rgba(0,0,0,0.05)' },
                             suggestedMin: 0,
                             suggestedMax: 5,
-                            pointLabels: {
-                                font: {
-                                    size: 12,
-                                }
-                            },
-                             ticks: {
-                                stepSize: 1
-                            }
+                            pointLabels: { font: { size: 12, weight: '500' } },
+                            ticks: { stepSize: 1, backdropColor: 'transparent' }
                         }
                     },
                     plugins: {
-                        legend: {
-                            position: 'top',
-                        },
+                        legend: { position: 'top', labels: { padding: 20, usePointStyle: true } },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed.r !== null) {
-                                        label += context.parsed.r + ' / 5';
-                                    }
-                                    return label;
+                                    return (context.dataset.label || '') + ': ' + context.parsed.r + ' / 5';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Bar Chart - Salaires
+            const ctxBar = document.getElementById('salaryChart').getContext('2d');
+            new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Serveur', 'Cuisinier', 'Maître d\'Hôtel'],
+                    datasets: [{
+                        label: 'Débutant',
+                        data: [1550, 1600, 1900],
+                        backgroundColor: 'rgba(99, 102, 241, 0.7)',
+                        borderColor: 'rgb(99, 102, 241)',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }, {
+                        label: 'Confirmé',
+                        data: [1800, 2200, 2600],
+                        backgroundColor: 'rgba(249, 115, 22, 0.7)',
+                        borderColor: 'rgb(249, 115, 22)',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }, {
+                        label: 'Expérimenté',
+                        data: [2100, 3000, 3500],
+                        backgroundColor: 'rgba(13, 148, 136, 0.7)',
+                        borderColor: 'rgb(13, 148, 136)',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Salaire net mensuel (€)', font: { size: 12 } },
+                            ticks: {
+                                callback: function(value) { return value.toLocaleString('fr-FR') + ' €'; }
+                            },
+                            grid: { color: 'rgba(0,0,0,0.04)' }
+                        },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { position: 'top', labels: { padding: 20, usePointStyle: true } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toLocaleString('fr-FR') + ' €/mois';
                                 }
                             }
                         }
