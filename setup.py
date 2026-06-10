@@ -34,6 +34,7 @@ setup(
             'egc-photo-editor=src.photo.editor:main',
             'egc-browser=src.browser.navigator:main',
             'egc-audio-amplifier=src.audio.amplifier:main',
+
         ],
     },
 )
