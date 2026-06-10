@@ -79,7 +79,11 @@ class BrowserTab(QWidget):
         if '.' in text and ' ' not in text:
             if not text.startswith(("http://", "https://")):
                 text = "https://" + text
-            self.browser.setUrl(QUrl(text))
+            url = QUrl(text)
+            if not url.isValid():
+                logger.warning(f"URL invalide: {text}")
+                return
+            self.browser.setUrl(url)
         else:
             self.browser.setUrl(QUrl(SEARCH_ENGINE + text))
         logger.info(f"Navigation: {text}")
@@ -178,11 +182,15 @@ class OptimizedBrowser(QMainWindow):
         if self.tabs.count() > 1:
             self.tabs.removeTab(index)
             logger.info(f"Onglet {index} fermé")
+        else:
+            self.statusBar().showMessage("Impossible de fermer le dernier onglet", 3000)
 
     def close_current_tab(self):
         """Ferme l'onglet courant"""
         if self.tabs.count() > 1:
             self.tabs.removeTab(self.tabs.currentIndex())
+        else:
+            self.statusBar().showMessage("Impossible de fermer le dernier onglet", 3000)
 
     def on_tab_changed(self, index: int):
         """Met à jour le titre de la fenêtre"""

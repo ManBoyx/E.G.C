@@ -75,6 +75,7 @@ class ScanThread(QThread):
                 progress = int((scanned / total) * 100) if total > 0 else 0
                 self.progress_signal.emit(progress)
         except Exception as e:
+            self.update_signal.emit(f"❌ Erreur lors du scan du répertoire: {e}")
             logger.error(f"Erreur scan: {e}")
         return infected
 
@@ -90,8 +91,12 @@ class ScanThread(QThread):
                     for sig in VIRUS_SIGNATURES:
                         if sig in chunk:
                             return True
-        except (OSError, IOError):
-            pass
+        except PermissionError:
+            self.update_signal.emit(f"  ⚠️ Accès refusé: {file_path}")
+            logger.warning(f"Permission denied: {file_path}")
+        except (OSError, IOError) as e:
+            self.update_signal.emit(f"  ⚠️ Impossible de lire: {file_path}")
+            logger.warning(f"Cannot read file {file_path}: {e}")
         return False
 
     def quarantine_file(self, file_path: str):
