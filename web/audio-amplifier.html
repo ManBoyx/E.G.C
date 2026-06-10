@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EGC Audio Amplifier</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1e1e2e;
+            color: #cdd6f4;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            color: #89b4fa;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.5rem;
+        }
+
+        .card {
+            background: #313244;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .gain-display {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .gain-value {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #a6e3a1;
+            transition: color 0.3s;
+        }
+        .gain-label {
+            color: #a6adc8;
+            font-size: 0.9rem;
+            margin-top: 0.3rem;
+        }
+
+        .slider-container {
+            position: relative;
+            margin: 1.5rem 0;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #1e1e2e;
+            border-radius: 4px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #89b4fa;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(137, 180, 250, 0.4);
+        }
+
+        .level-indicator {
+            display: flex;
+            gap: 3px;
+            height: 40px;
+            margin: 1.5rem 0;
+            align-items: flex-end;
+        }
+        .level-bar {
+            flex: 1;
+            background: #45475a;
+            border-radius: 2px;
+            transition: height 0.1s, background 0.1s;
+            min-height: 4px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.8rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .btn-start { background: #a6e3a1; color: #1e1e2e; }
+        .btn-start:hover { background: #94d990; }
+        .btn-stop { background: #f38ba8; color: #1e1e2e; }
+        .btn-stop:hover { background: #f17497; }
+        .btn-file { background: #89b4fa; color: #1e1e2e; }
+        .btn-file:hover { background: #74a8fc; }
+        .btn:disabled { opacity: 0.4; cursor: default; }
+
+        .info {
+            background: #1e1e2e;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.3rem 0;
+            font-size: 0.85rem;
+        }
+        .info-row .label { color: #a6adc8; }
+
+        .warning {
+            background: #f38ba822;
+            border: 1px solid #f38ba8;
+            border-radius: 8px;
+            padding: 0.8rem;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: #f38ba8;
+            text-align: center;
+            display: none;
+        }
+
+        @media (max-width: 500px) {
+            body { padding: 1rem; }
+            .gain-value { font-size: 3rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>EGC Audio Amplifier</h1>
+
+        <div class="card">
+            <div class="gain-display">
+                <div class="gain-value" id="gain-value">1.0x</div>
+                <div class="gain-label">Gain actuel</div>
+            </div>
+
+            <div class="slider-container">
+                <input type="range" id="gain-slider" min="0" max="300" value="100"
+                    oninput="updateGain(this.value)">
+            </div>
+
+            <div class="level-indicator" id="level-indicator"></div>
+
+            <div class="controls">
+                <input type="file" id="audio-file" accept="audio/*" style="display:none"
+                    onchange="loadAudio(this)">
+                <button class="btn btn-file" onclick="document.getElementById('audio-file').click()">
+                    Charger Audio
+                </button>
+                <button class="btn btn-start" id="btn-play" onclick="playAudio()" disabled>
+                    Lecture
+                </button>
+                <button class="btn btn-stop" id="btn-stop" onclick="stopAudio()" disabled>
+                    Stop
+                </button>
+            </div>
+
+            <div class="warning" id="warning">
+                Attention : gain élevé — risque de distorsion !
+            </div>
+
+            <div class="info">
+                <div class="info-row">
+                    <span class="label">Fichier :</span>
+                    <span id="info-file">Aucun</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Durée :</span>
+                    <span id="info-duration">--:--</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">État :</span>
+                    <span id="info-state">En attente</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        let sourceNode = null;
+        let gainNode = null;
+        let analyser = null;
+        let audioBuffer = null;
+        let animFrame = null;
+        let isPlaying = false;
+
+        const NUM_BARS = 32;
+        const indicator = document.getElementById('level-indicator');
+        for (let i = 0; i < NUM_BARS; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'level-bar';
+            indicator.appendChild(bar);
+        }
+
+        function updateGain(value) {
+            const gain = value / 100;
+            document.getElementById('gain-value').textContent = gain.toFixed(1) + 'x';
+
+            const el = document.getElementById('gain-value');
+            if (gain > 2.0) {
+                el.style.color = '#f38ba8';
+                document.getElementById('warning').style.display = 'block';
+            } else if (gain > 1.5) {
+                el.style.color = '#fab387';
+                document.getElementById('warning').style.display = 'none';
+            } else {
+                el.style.color = '#a6e3a1';
+                document.getElementById('warning').style.display = 'none';
+            }
+
+            if (gainNode) {
+                gainNode.gain.value = gain;
+            }
+        }
+
+        function loadAudio(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            document.getElementById('info-file').textContent = file.name;
+            document.getElementById('info-state').textContent = 'Chargement...';
+
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                audioCtx.decodeAudioData(e.target.result, (buffer) => {
+                    audioBuffer = buffer;
+                    const duration = Math.floor(buffer.duration);
+                    const min = Math.floor(duration / 60);
+                    const sec = duration % 60;
+                    document.getElementById('info-duration').textContent =
+                        `${min}:${sec.toString().padStart(2, '0')}`;
+                    document.getElementById('info-state').textContent = 'Prêt';
+                    document.getElementById('btn-play').disabled = false;
+                }, () => {
+                    document.getElementById('info-state').textContent = 'Erreur de décodage';
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function playAudio() {
+            if (!audioBuffer || isPlaying) return;
+
+            sourceNode = audioCtx.createBufferSource();
+            sourceNode.buffer = audioBuffer;
+
+            gainNode = audioCtx.createGain();
+            gainNode.gain.value = document.getElementById('gain-slider').value / 100;
+
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 64;
+
+            sourceNode.connect(gainNode);
+            gainNode.connect(analyser);
+            analyser.connect(audioCtx.destination);
+
+            sourceNode.start();
+            isPlaying = true;
+
+            document.getElementById('btn-play').disabled = true;
+            document.getElementById('btn-stop').disabled = false;
+            document.getElementById('info-state').textContent = 'Lecture en cours';
+
+            sourceNode.onended = () => {
+                isPlaying = false;
+                document.getElementById('btn-play').disabled = false;
+                document.getElementById('btn-stop').disabled = true;
+                document.getElementById('info-state').textContent = 'Terminé';
+                cancelAnimationFrame(animFrame);
+                resetBars();
+            };
+
+            visualize();
+        }
+
+        function stopAudio() {
+            if (sourceNode && isPlaying) {
+                sourceNode.stop();
+                isPlaying = false;
+                document.getElementById('btn-play').disabled = false;
+                document.getElementById('btn-stop').disabled = true;
+                document.getElementById('info-state').textContent = 'Arrêté';
+                cancelAnimationFrame(animFrame);
+                resetBars();
+            }
+        }
+
+        function visualize() {
+            const data = new Uint8Array(analyser.frequencyBinCount);
+            const bars = indicator.children;
+
+            function draw() {
+                animFrame = requestAnimationFrame(draw);
+                analyser.getByteFrequencyData(data);
+
+                for (let i = 0; i < NUM_BARS; i++) {
+                    const value = data[i] || 0;
+                    const pct = (value / 255) * 100;
+                    bars[i].style.height = Math.max(4, pct) + '%';
+
+                    if (pct > 80) bars[i].style.background = '#f38ba8';
+                    else if (pct > 50) bars[i].style.background = '#fab387';
+                    else bars[i].style.background = '#a6e3a1';
+                }
+            }
+            draw();
+        }
+
+        function resetBars() {
+            const bars = indicator.children;
+            for (let i = 0; i < bars.length; i++) {
+                bars[i].style.height = '4px';
+                bars[i].style.background = '#45475a';
+            }
+        }
+    </script>
+</body>
+</html>
